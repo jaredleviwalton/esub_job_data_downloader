@@ -1,0 +1,8 @@
+**/*__pycache__
+**/*.pyc
+
+# file with usernames and passwords
+_users_and_passwords.py
+
+# virtual environment for this project
+.venv

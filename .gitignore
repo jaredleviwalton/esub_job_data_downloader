@@ -6,3 +6,13 @@ _users_and_passwords.py
 
 # virtual environment for this project
 .venv
+venv
+
+# stuff to deliver
+payload
+tmp
+
+# webdrivers
+bin
+geckodriver.*
+**/chromedriver*

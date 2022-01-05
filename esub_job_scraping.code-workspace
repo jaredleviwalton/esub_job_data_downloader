@@ -4,60 +4,54 @@
             "path": "."
         }
     ],
-
     "settings": {
         "python.linting.enabled": true,
         "python.linting.pylintEnabled": true,
         "python.linting.pycodestyleEnabled": true,
         "python.languageServer": "Pylance",
-        "python.defaultInterpreterPath": "./.venv/bin/python",  // python3 -m venv .venv
-        
-        
+        "python.defaultInterpreterPath": "./.venv/bin/python", // python3 -m venv .venv
         "cSpell.language": "en-US",
         "cSpell.words": [
             "outputtbl"
         ],
-        
         "autoDocstring.docstringFormat": "google",
         "autoDocstring.generateDocstringOnEnter": true,
         "autoDocstring.startOnNewLine": true,
         "autoDocstring.guessTypes": true,
         "autoDocstring.quoteStyle": "'''",
-        
         // Draw vertical white lines for reminders
         // At 80 columns you should start thinking of line breaks for comments.
         // At 132 columns you should start thinking of line breaks for code.
-        "[python]":{
-            "editor.rulers": [80,132],
+        "[python]": {
+            "editor.rulers": [
+                80,
+                132
+            ],
         },
-        "[shellscript]":{
-            "editor.rulers": [80,132],
+        "[shellscript]": {
+            "editor.rulers": [
+                80,
+                132
+            ],
         },
-        "[powershell]":{
-            "editor.rulers": [80,132],
+        "[powershell]": {
+            "editor.rulers": [
+                80,
+                132
+            ],
         },
-        
         // https://pep8.readthedocs.io/en/latest/intro.html#configuration
         "python.linting.pycodestyleArgs": [
             "--max-doc-length=132",
             "--max-line-length=264",
-            "--ignore=E701",  // Ignore errors for multiple statements on one line (colon) (i.e. "device_id: str")
+            "--ignore=E701", // Ignore errors for multiple statements on one line (colon) (i.e. "device_id: str")
         ],
-        
         "explorer.confirmDelete": false,
-        
         "editor.suggestSelection": "first",
-
         "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-
-        "files.associations": {
-        },
-
-        "python.analysis.extraPaths": [
-        ],
-        
+        "files.associations": {},
+        "python.analysis.extraPaths": [],
         "editor.maxTokenizationLineLength": 100000,
-
         "python.testing.unittestArgs": [
             "-v",
             "-s",
@@ -69,7 +63,6 @@
         "python.testing.unittestEnabled": true
     },
     // End settings
-
     "extensions": {
         // Get the currently installed code settings via CMD> code --list-extensions
         "recommendations": [
@@ -80,13 +73,12 @@
         ]
     },
     // End extensions
-
     "launch": {
         // Use IntelliSense to learn about possible attributes.
         // Hover to view descriptions of existing attributes.
         // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
         "version": "0.2.0",
-        "configurations": [        
+        "configurations": [
             {
                 "name": "Python - Wait",
                 "type": "python",

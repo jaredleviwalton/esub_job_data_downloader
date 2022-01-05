@@ -480,6 +480,10 @@ class eSUB:
             sleep(3)
             self._get_emails(project_download_folder, "Project", "Project Inbox")
 
+            self.driver_session.get(project_url)
+            sleep(3)
+            self._get_typical_page_docs(project_download_folder, "Project", "Contacts")
+
     def _get_files(self, project_download_folder, sub_job_cost_doc_item):
         # get the files dropdown and click on it
         for dropdown in self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger"):

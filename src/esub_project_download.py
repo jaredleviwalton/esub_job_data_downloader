@@ -792,16 +792,26 @@ class eSUB:
                 break  # probably don't need this but don't want to test it
 
     # "Fancy" wait that I never had time or care to use except for login
-    def _wait_for(self, element_id=None, element_name=None, css_selector=None, timeout=20):
+    def _wait_for(self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300):
 
-        sleep(5)
+        sleep(1)
 
-        if element_id is not None and element_name is None and css_selector is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(lambda x: x.find_element_by_id(element_id).is_displayed())
-        elif element_name is not None and element_id is None and css_selector is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(lambda x: x.find_element_by_name(element_name).is_displayed())
-        elif css_selector is not None and element_id is None and element_name is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(lambda x: len(x.find_elements_by_css_selector(css_selector)) > 0)
+        if element_id is not None and element_name is None and css_selector is None and class_name is None:
+            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
+                lambda x: x.find_element_by_id(element_id).is_displayed()
+            )
+        elif element_name is not None and element_id is None and css_selector is None and class_name is None:
+            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
+                lambda x: x.find_element_by_name(element_name).is_displayed()
+            )
+        elif css_selector is not None and element_id is None and element_name is None and class_name is None:
+            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
+                lambda x: len(x.find_elements_by_css_selector(css_selector)) > 0
+            )
+        elif class_name is not None and element_id is None and element_name is None and css_selector is None:
+            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
+                lambda x: len(x.find_elements_by_class_name(class_name))
+            )
         else:
             raise ValueError("Bad _wait_for combo", element_id, element_name, timeout)
 

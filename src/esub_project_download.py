@@ -497,8 +497,9 @@ class eSUB:
                         item.click()
                         break
 
-                sleep(5)
-                pathlib.Path(os.path.join(project_download_folder, sub_job_cost_doc_item)).mkdir(parents=True, exist_ok=True)
+                pathlib.Path(os.path.join(project_download_folder, "Files", sub_job_cost_doc_item)).mkdir(
+                    parents=True, exist_ok=True
+                )
 
                 self._download_project_files(project_download_folder, sub_job_cost_doc_item)
 
@@ -774,7 +775,9 @@ class eSUB:
             sanitized_down_url = str(down_url).replace("\\", "/")
             urlretrieve(
                 url_quote(f"https://www.esubonline.com{sanitized_down_url}", safe="/:?&()"),
-                os.path.join(project_download_folder, sub_job_cost_doc_item, os.path.basename(sanitized_down_url)),
+                os.path.join(
+                    project_download_folder, "Files", sub_job_cost_doc_item, os.path.basename(sanitized_down_url)
+                ),
             )
 
         # if there is a next page, download that

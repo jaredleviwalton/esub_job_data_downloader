@@ -311,7 +311,7 @@ class eSUB:
 
     CHROME_DOWNLOAD_FOLDER_PATH = r"C:\Users\jawalking\tmp"
 
-    DOWNLOAD_BASE_FOLDER = r"C:\Users\jawalking\payload"
+    DOWNLOAD_BASE_FOLDER = r"C:\Users\jawalking\new_payload"
 
     # existing driver session for debugging and when it breaks
     # update as needed
@@ -391,12 +391,12 @@ class eSUB:
 
             # Load the project page
             self.driver_session.get(project_url)
-            sleep(3)
 
             # get the url id number to help with non-unique names
             url_id = os.path.basename(project_url)
 
             # get the project name
+            self._wait_for(class_name="es-project-summary__title")
             project_name = (
                 str(self.driver_session.find_elements_by_class_name("es-project-summary__title")[0].text)
                 .strip(r"business")
@@ -413,74 +413,92 @@ class eSUB:
             pathlib.Path(project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # required items to get
-            self._get_files(project_download_folder, "Project Files")  # <------------------
+            self._get_files(project_download_folder, "Project Files")
 
             self.driver_session.get(project_url)
-            sleep(3)
-            self._get_files(project_download_folder, "Company Files")  # <------------------
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
+            self._get_files(project_download_folder, "Company Files")
 
             self.driver_session.get(project_url)
-            sleep(3)
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Change Order Requests")  # <------------------
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
+            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Change Order Requests")
 
             self.driver_session.get(project_url)
-            sleep(3)
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Requests For Information")  # <------------------
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
+            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Requests For Information")
 
             self.driver_session.get(project_url)
-            sleep(3)
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Submittals")  # <------------------
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
+            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Submittals")
 
             # Extras
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Purchase Orders")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontracts")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontract Change Orders")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Pay Applications")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Field Notes")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Meeting Minutes")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Equipment Rental")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Correspondence Log")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Project", "Issues")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Daily Reports")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Construction Docs", "Drawing Sets")
 
             self.driver_session.get(project_url)
-            sleep(3)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_emails(project_download_folder, "Project", "Project Inbox")
 
             self.driver_session.get(project_url)
+            # sleep(3)
+            self._wait_for(class_name="es-project-summary__title")
             self._get_typical_page_docs(project_download_folder, "Project", "Contacts", download_files=False)
 
     def _get_files(self, project_download_folder, sub_job_cost_doc_item):
@@ -519,7 +537,10 @@ class eSUB:
                         item.click()
                         break
 
-                sleep(5)
+                # sleep(5)
+                self._wait_for(
+                    css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
+                )
                 pathlib.Path(os.path.join(project_download_folder, tab_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
@@ -565,7 +586,10 @@ class eSUB:
                         item.click()
                         break
 
-                sleep(5)
+                # sleep(4)
+                self._wait_for(
+                    css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
+                )
                 pathlib.Path(os.path.join(project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
@@ -631,7 +655,9 @@ class eSUB:
         download_path = os.path.join(project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(download_path).mkdir(parents=True, exist_ok=True)
 
-        items_to_download = self.driver_session.find_elements_by_css_selector('[alt="View this Incoming Correspondence"]')
+        items_to_download = self.driver_session.find_elements_by_css_selector(
+            '[alt="View this Incoming Correspondence"]'
+        )
         email_numbers = self.driver_session.find_elements_by_css_selector('[alt="Created from Incoming Email"]')
 
         # For some reason getting these items in reverse order causes hangs...
@@ -662,7 +688,9 @@ class eSUB:
             )
 
             # Attachment links are next to these icons, so get all of them
-            attachment_icon_elements = self.driver_session.find_elements_by_css_selector('[src="/TRACKpoint/images/icons/attachment.png"]')
+            attachment_icon_elements = self.driver_session.find_elements_by_css_selector(
+                '[src="/TRACKpoint/images/icons/attachment.png"]'
+            )
             for attachment_icon_element in attachment_icon_elements:
 
                 # get the parent and sibling element(s) for the attachment icon
@@ -677,7 +705,9 @@ class eSUB:
 
                 down_url = sibling_elements[2].find_elements_by_xpath("*")[0].get_attribute("href")
 
-                save_path = os.path.join(download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}")
+                save_path = os.path.join(
+                    download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}"
+                )
 
                 if os.path.exists(save_path):
                     # hacky check for duplicate email attachment
@@ -704,6 +734,8 @@ class eSUB:
 
     def _download_pdf_files(self, project_download_folder, tab_name, sub_job_cost_doc_item):
 
+        self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
+
         project_files_download_path = os.path.join(project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(project_files_download_path).mkdir(parents=True, exist_ok=True)
 
@@ -719,7 +751,10 @@ class eSUB:
             check_boxes = self.driver_session.find_elements_by_css_selector('[type="checkbox"')
             for check_box in check_boxes:
                 # lazy checks for checkboxes that may exist but shouldn't be clicked
-                if check_box.get_attribute("name") == "DnDHours" or check_box.get_attribute("name") == "checkboxLastRev":
+                if (
+                    check_box.get_attribute("name") == "DnDHours"
+                    or check_box.get_attribute("name") == "checkboxLastRev"
+                ):
                     continue  # don't click these
 
                 # If not checked, check it
@@ -748,7 +783,10 @@ class eSUB:
                     # move to payload folder
                     files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)
                     pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files[0])).replace(
-                        os.path.join(project_files_download_path, re.sub(r".\d{8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files[0]), count=0, flags=0))
+                        os.path.join(
+                            project_files_download_path,
+                            re.sub(r".\d{8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files[0]), count=0, flags=0),
+                        )
                     )
                     break  # There is only one button that we click once, so break
 
@@ -764,6 +802,8 @@ class eSUB:
                 break  # probably don't need this but don't want to test it
 
     def _download_project_files(self, project_download_folder, sub_job_cost_doc_item):
+
+        self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
 
         # get all the download links
         items_to_download = e.driver_session.find_elements_by_css_selector('[onclick="down(this)"]')

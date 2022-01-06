@@ -481,8 +481,7 @@ class eSUB:
             self._get_emails(project_download_folder, "Project", "Project Inbox")
 
             self.driver_session.get(project_url)
-            sleep(3)
-            self._get_typical_page_docs(project_download_folder, "Project", "Contacts")
+            self._get_typical_page_docs(project_download_folder, "Project", "Contacts", download_files=False)
 
     def _get_files(self, project_download_folder, sub_job_cost_doc_item):
         # get the files dropdown and click on it
@@ -549,7 +548,7 @@ class eSUB:
 
                 break
 
-    def _get_typical_page_docs(self, project_download_folder, menu_name, sub_menu_name):
+    def _get_typical_page_docs(self, project_download_folder, menu_name, sub_menu_name, download_files=True):
         # get the files dropdown and click on it
         menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger")
         for dropdown in menus:
@@ -592,8 +591,8 @@ class eSUB:
 
                         break  # We are done here, don't try to process inactive menu items
 
-                # download files
-                self._download_pdf_files(project_download_folder, menu_name, sub_menu_name)
+                if download_files:
+                    self._download_pdf_files(project_download_folder, menu_name, sub_menu_name)
 
                 break  # We are done here, don't try to process inactive menu items
 

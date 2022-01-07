@@ -565,8 +565,9 @@ class eSUB:
 
                 break  # probably don't need this but don't want to test it
 
-    # "Fancy" wait that I never had time or care to use except for login
-    def _wait_for(self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300):
+    def _wait_for(
+        self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
+    ):
 
         sleep(1)
 
@@ -574,20 +575,58 @@ class eSUB:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: x.find_element(By.ID, element_id).is_displayed()
             )
+
+            if text is not None:
+                self._wait_for_text(lambda: self.driver_session.find_element(By.ID, element_id), text, timeout)
+
         elif element_name is not None and element_id is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: x.find_element(By.NAME, element_name).is_displayed()
             )
+
+            if text is not None:
+                self._wait_for_text(lambda: self.driver_session.find_element(By.NAME, element_name), text, timeout)
+
         elif css_selector is not None and element_id is None and element_name is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: len(x.find_elements(By.CSS_SELECTOR, css_selector)) > 0
             )
+
+            if text is not None:
+                self._wait_for_text(
+                    lambda: self.driver_session.find_elements(By.CSS_SELECTOR, css_selector), text, timeout
+                )
+
         elif class_name is not None and element_id is None and element_name is None and css_selector is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: len(x.find_elements(By.CLASS_NAME, class_name))
+                lambda x: len(x.find_elements(By.CLASS_NAME, class_name)) > 0
             )
+
+            if text is not None:
+                self._wait_for_text(
+                    lambda: self.driver_session.find_elements(By.CLASS_NAME, class_name), text, timeout
+                )
+
         else:
             raise ValueError("Bad _wait_for combo", element_id, element_name, timeout)
+
+    def _wait_for_text(self, function, text, timeout):
+        i = 0
+        while i < timeout:
+            result = function()
+
+            if type(result) is list:
+                for item in result:
+                    if item.text == text:
+                        return
+            else:
+                if result.text == text:
+                    return
+
+            i += 1
+            sleep(1)
+
+        raise Exception(f"Timed out waiting for text '{text}'")
 
     # TODO:
     # This doesn't work, need to manually move the mouse to the middle

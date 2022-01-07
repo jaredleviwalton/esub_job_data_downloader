@@ -35,6 +35,7 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
@@ -449,9 +450,33 @@ class eSUB:
         # For some reason this wants things from the bottom up, or it hangs.
         for item in items_to_download[::-1]:
             ActionChains(self.driver_session).move_to_element(item).perform()
-            item.click()
-            sleep(3)
+            try:
+                item.click()
+            except:
+                # This is an attempt to handle an edge case case < 2%
+                # where the help icon is obscuring the download button (only on Field Notes)
+                # But it causes a full halt to the run.
 
+                # Get body and arrow key down
+                # TODO: Use this to get all projects from main page
+                main = self.driver_session.find_element(By.CSS_SELECTOR, "body")
+                main.send_keys(Keys.DOWN)
+                main.send_keys(Keys.DOWN)
+                sleep(3)
+
+                # Re-find all download elements, match with the current item and click it
+                # if we don't find it raise and exception
+                new_download_item_list = self.driver_session.find_elements(By.CSS_SELECTOR, '[alt="Download as PDF"]')
+
+                found = False
+                for new_item in new_download_item_list:
+                    if new_item.id == item.id:
+                        new_item.click()
+                        found = True
+                        break
+
+                if not found:
+                    raise Exception("Attempting to find a matching item failed.")
             # select all checkboxes not already checked
             check_boxes = self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"')
             for check_box in check_boxes:

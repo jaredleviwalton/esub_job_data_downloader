@@ -194,8 +194,8 @@ class eSUB:
             print("\n\n")
 
     def _get_files(self, menu_name, sub_job_cost_doc_item):
-        vars = list(locals().values())
-        print(f"\t\t{vars[1]} -> {vars[2]}")
+        my_vars = list(locals().values())
+        print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")
@@ -218,8 +218,8 @@ class eSUB:
                 self._download_project_files(menu_name, sub_job_cost_doc_item)
 
     def _get_emails(self, tab_name, sub_job_cost_doc_item):
-        vars = list(locals().values())
-        print(f"\t\t{vars[1]} -> {vars[2]}")
+        my_vars = list(locals().values())
+        print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")
@@ -271,8 +271,8 @@ class eSUB:
                 break
 
     def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True):
-        vars = list(locals().values())
-        print(f"\t\t{vars[1]} -> {vars[2]}")
+        my_vars = list(locals().values())
+        print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")

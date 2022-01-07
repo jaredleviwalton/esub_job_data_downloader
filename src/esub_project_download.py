@@ -477,6 +477,9 @@ class eSUB:
 
                 if not found:
                     raise Exception("Attempting to find a matching item failed.")
+
+            self._wait_for(css_selector=".ui-button-text", text="Download PDF File")
+
             # select all checkboxes not already checked
             check_boxes = self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"')
             for check_box in check_boxes:

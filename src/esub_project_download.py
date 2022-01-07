@@ -128,7 +128,7 @@ class eSUB:
     def _do_download_action(self, function):
         self.driver_session.get(self.project_url)
         self._wait_for(class_name="es-project-summary__title")
-        self._wait_for(class_name="weather-widget__day-content")
+        self._wait_for(class_name="es-budget-bar__title")
         function()
         breakpoint
 
@@ -415,7 +415,7 @@ class eSUB:
                 )
 
                 if os.path.exists(save_path):
-                    # hacky check for duplicate email attachment
+                    # TODO: hacky check for duplicate email attachment
                     # if broken here write increment logic
                     raise Exception(" duplicate email attachment, write increment logic!")
 

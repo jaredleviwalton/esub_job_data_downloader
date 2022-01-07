@@ -90,6 +90,7 @@ class eSUB:
             self.driver_session = Chrome("chromedriver", chrome_options=chrome_options)
             print(f"{self.driver_session.command_executor._url=}")  # We'll need this for keeping this session
             print(f"{self.driver_session.session_id=}")  # We'll need this for keeping this session
+            print("\n")
             self._login()
 
     def _login(self) -> None:
@@ -123,9 +124,10 @@ class eSUB:
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\.%\$\^]', "", string)
 
-    def _do_download_action(self, project_url, function):
-        self.driver_session.get(project_url)
+    def _do_download_action(self, function):
+        self.driver_session.get(self.project_url)
         self._wait_for(class_name="es-project-summary__title")
+        self._wait_for(class_name="weather-widget__day-content")
         function()
         breakpoint
 
@@ -136,6 +138,7 @@ class eSUB:
 
             # Load the project page
             self.driver_session.get(project_url)
+            self.project_url = project_url
 
             # get the url id number to help with non-unique names
             url_id = os.path.basename(project_url)
@@ -154,41 +157,48 @@ class eSUB:
 
             # the project download folder is the url id + the project name
             self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-            print(f"{project_url} -> {self.project_download_folder}")
+            print(self.project_url)
+            print(self.project_download_folder)
             pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # fmt: off
 
             # Project tab
-            self._do_download_action(project_url, lambda: self._get_emails("Project", "Project Inbox"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Project", "Issues"))
+            self._do_download_action(lambda: self._get_emails("Project", "Project Inbox"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False))
+            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Issues"))
 
             # Construction Docs tab
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Field Notes"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Submittals"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Field Notes"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Submittals"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets"))
 
             # Job Cost Docs tab
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications"))
 
             # Files tab
-            self._do_download_action(project_url, lambda: self._get_files("Files", "Project Files"))
-            self._do_download_action(project_url, lambda: self._get_files("Files", "Company Files"))
+            self._do_download_action(lambda: self._get_files("Files", "Project Files"))
+            self._do_download_action(lambda: self._get_files("Files", "Company Files"))
 
             # fmt: on
 
+            print("\n\n")
+
     def _get_files(self, menu_name, sub_job_cost_doc_item):
+        vars = list(locals().values())
+        print(f"\t\t{vars[1]} -> {vars[2]}")
+
         # get the files dropdown and click on it
+        self._wait_for(css_selector=".es-dropdown-menu-trigger")
         for dropdown in self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger"):
             if menu_name == dropdown.text:
                 dropdown.click()
@@ -208,7 +218,11 @@ class eSUB:
                 self._download_project_files(menu_name, sub_job_cost_doc_item)
 
     def _get_emails(self, tab_name, sub_job_cost_doc_item):
+        vars = list(locals().values())
+        print(f"\t\t{vars[1]} -> {vars[2]}")
+
         # get the files dropdown and click on it
+        self._wait_for(css_selector=".es-dropdown-menu-trigger")
         menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if tab_name in str(dropdown.accessible_name):
@@ -257,7 +271,11 @@ class eSUB:
                 break
 
     def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True):
+        vars = list(locals().values())
+        print(f"\t\t{vars[1]} -> {vars[2]}")
+
         # get the files dropdown and click on it
+        self._wait_for(css_selector=".es-dropdown-menu-trigger")
         menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if menu_name in str(dropdown.accessible_name):
@@ -430,6 +448,7 @@ class eSUB:
 
         # For some reason this wants things from the bottom up, or it hangs.
         for item in items_to_download[::-1]:
+            ActionChains(self.driver_session).move_to_element(item).perform()
             item.click()
             sleep(3)
 
@@ -494,6 +513,7 @@ class eSUB:
         # get all the download links
         items_to_download = e.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
         for item in items_to_download:
+            ActionChains(self.driver_session).move_to_element(item).perform()
             down_url = item.get_attribute("data-url")
 
             # it's some weird half link windows path, that their backend handles

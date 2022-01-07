@@ -82,6 +82,7 @@ class eSUB:
             }
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
+            chrome_options.add_argument("log-level=3")  # ignore warnings
             self.driver_session = webdriver.Chrome("chromedriver", chrome_options=chrome_options)
             print(f"{self.driver_session.command_executor._url=}")  # We'll need this for keeping this session
             print(f"{self.driver_session.session_id=}")  # We'll need this for keeping this session

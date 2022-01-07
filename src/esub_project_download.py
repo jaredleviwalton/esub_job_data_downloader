@@ -22,17 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import os
-import re
 import json
+import os
 import pathlib
+import re
 from time import sleep
-from urllib.request import urlretrieve
 from urllib.parse import quote as url_quote
+from urllib.request import urlretrieve
 
-from tqdm import tqdm
-from selenium import webdriver
+from selenium.webdriver import Chrome
+from selenium.webdriver import ChromeOptions
+from selenium.webdriver import Remote
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from tqdm import tqdm
 
 import users_and_passwords as unp
 
@@ -54,11 +58,11 @@ class eSUB:
 
     def __init__(self, use_existing_session=False) -> None:
         if use_existing_session:
-            self.driver_session = webdriver.Remote(command_executor=self.EXISTING_SESSION_URL, desired_capabilities={})
+            self.driver_session = Remote(command_executor=self.EXISTING_SESSION_URL, desired_capabilities={})
             self.driver_session.close()
             self.driver_session.session_id = self.EXISTING_SESSION_ID
         else:
-            chrome_options = webdriver.ChromeOptions()
+            chrome_options = ChromeOptions()
 
             # For printing as PDF
             settings = {
@@ -83,7 +87,7 @@ class eSUB:
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
             chrome_options.add_argument("log-level=3")  # ignore warnings
-            self.driver_session = webdriver.Chrome("chromedriver", chrome_options=chrome_options)
+            self.driver_session = Chrome("chromedriver", chrome_options=chrome_options)
             print(f"{self.driver_session.command_executor._url=}")  # We'll need this for keeping this session
             print(f"{self.driver_session.session_id=}")  # We'll need this for keeping this session
             self._login()
@@ -93,10 +97,10 @@ class eSUB:
 
         self._wait_for(element_id="txtUsername")
 
-        self.driver_session.find_element_by_id("txtUsername").send_keys(unp.USER_NAME)
-        self.driver_session.find_element_by_id("txtPassword").send_keys(unp.USER_PASS)
+        self.driver_session.find_element(By.ID, "txtUsername").send_keys(unp.USER_NAME)
+        self.driver_session.find_element(By.ID, "txtPassword").send_keys(unp.USER_PASS)
 
-        self.driver_session.find_element_by_id("btnLogin").click()
+        self.driver_session.find_element(By.ID, "btnLogin").click()
 
         sleep(5)
 
@@ -110,7 +114,7 @@ class eSUB:
         self._scroll_down_page()
 
         # get projects list and keep it
-        self.projects = self.driver_session.find_elements_by_css_selector(".project-card")
+        self.projects = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
 
         for project in self.projects:
             project_url = project.get_attribute("href")
@@ -139,7 +143,7 @@ class eSUB:
             # get the project name
             self._wait_for(class_name="es-project-summary__title")
             project_name = (
-                str(self.driver_session.find_elements_by_class_name("es-project-summary__title")[0].text)
+                str(self.driver_session.find_elements(By.CLASS_NAME, "es-project-summary__title")[0].text)
                 .strip(r"business")
                 .strip(r"keybaord_arrow_down")
                 .strip("\n")
@@ -185,14 +189,14 @@ class eSUB:
 
     def _get_files(self, menu_name, sub_job_cost_doc_item):
         # get the files dropdown and click on it
-        for dropdown in self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger"):
+        for dropdown in self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger"):
             if menu_name == dropdown.text:
                 dropdown.click()
 
                 sleep(1)
 
                 # get the projects files sub menu item and click on it
-                for item in self.driver_session.find_elements_by_css_selector(".es-dropdown-menu__item"):
+                for item in self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item"):
                     if sub_job_cost_doc_item == item.text:
                         item.click()
                         break
@@ -205,7 +209,7 @@ class eSUB:
 
     def _get_emails(self, tab_name, sub_job_cost_doc_item):
         # get the files dropdown and click on it
-        menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger")
+        menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if tab_name in str(dropdown.accessible_name):
                 dropdown.click()
@@ -213,7 +217,7 @@ class eSUB:
                 sleep(2)
 
                 # get the projects files sub menu item and click on it
-                sub_menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu__item")
+                sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
                 for item in sub_menus:
                     if sub_job_cost_doc_item in item.text:
                         item.click()
@@ -226,7 +230,7 @@ class eSUB:
                 pathlib.Path(os.path.join(self.project_download_folder, tab_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
-                on_mouse_over_items = self.driver_session.find_elements_by_xpath('//*[@name="IconXLS1"]')
+                on_mouse_over_items = self.driver_session.find_elements(By.XPATH, '//*[@name="IconXLS1"]')
                 for item in on_mouse_over_items:
                     if "Excel" in item.text or len(on_mouse_over_items) == 1:
 
@@ -254,7 +258,7 @@ class eSUB:
 
     def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True):
         # get the files dropdown and click on it
-        menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger")
+        menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if menu_name in str(dropdown.accessible_name):
                 dropdown.click()
@@ -262,7 +266,7 @@ class eSUB:
                 sleep(2)
 
                 # get the projects files sub menu item and click on it
-                sub_menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu__item")
+                sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
                 for item in sub_menus:
                     if sub_menu_name in item.text:
                         item.click()
@@ -275,7 +279,7 @@ class eSUB:
                 pathlib.Path(os.path.join(self.project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
-                on_mouse_over_items = self.driver_session.find_elements_by_xpath('//*[@name="IconXLS1"]')
+                on_mouse_over_items = self.driver_session.find_elements(By.XPATH, '//*[@name="IconXLS1"]')
                 for item in on_mouse_over_items:
                     if "Excel" in item.text or len(on_mouse_over_items) == 1:
 
@@ -337,15 +341,15 @@ class eSUB:
         download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(download_path).mkdir(parents=True, exist_ok=True)
 
-        items_to_download = self.driver_session.find_elements_by_css_selector(
-            '[alt="View this Incoming Correspondence"]'
+        items_to_download = self.driver_session.find_elements(
+            By.CSS_SELECTOR, '[alt="View this Incoming Correspondence"]'
         )
-        email_numbers = self.driver_session.find_elements_by_css_selector('[alt="Created from Incoming Email"]')
+        email_numbers = self.driver_session.find_elements(By.CSS_SELECTOR, '[alt="Created from Incoming Email"]')
 
         # For some reason getting these items in reverse order causes hangs...
         # for item, number_element in zip(items_to_download[::-1], email_numbers[::-1]):
         for item, number_element in zip(items_to_download, email_numbers):
-            email_number = number_element.find_element_by_xpath("../..").text
+            email_number = number_element.find_element(By.XPATH, "../..").text
 
             item.click()
             sleep(3)
@@ -359,7 +363,7 @@ class eSUB:
             self.driver_session.switch_to.window(self.driver_session.window_handles[-1])
 
             # The name is the only element with this bg class on the page
-            email_name = e.driver_session.find_elements_by_xpath('//*[@class="bgcolor3"]')[0].accessible_name
+            email_name = e.driver_session.find_elements(By.XPATH, '//*[@class="bgcolor3"]')[0].accessible_name
             email_name = self._get_windows_path_safe_string(email_name)
 
             # Print email and move to project email folder
@@ -370,8 +374,8 @@ class eSUB:
             )
 
             # Attachment links are next to these icons, so get all of them
-            attachment_icon_elements = self.driver_session.find_elements_by_css_selector(
-                '[src="/TRACKpoint/images/icons/attachment.png"]'
+            attachment_icon_elements = self.driver_session.find_elements(
+                By.CSS_SELECTOR, '[src="/TRACKpoint/images/icons/attachment.png"]'
             )
             for attachment_icon_element in attachment_icon_elements:
 
@@ -379,13 +383,13 @@ class eSUB:
                 # sibling at index 0 is the icon
                 # sibling at index 1 is the attachment name
                 # sibling at index 2 is the download link
-                parent_element = attachment_icon_element.find_element_by_xpath("../..")
-                sibling_elements = parent_element.find_elements_by_xpath("*")
+                parent_element = attachment_icon_element.find_element(By.XPATH, "../..")
+                sibling_elements = parent_element.find_elements(By.XPATH, "*")
 
                 attachment_name = sibling_elements[1].text
                 attachment_name = self._get_windows_path_safe_string(attachment_name)
 
-                down_url = sibling_elements[2].find_elements_by_xpath("*")[0].get_attribute("href")
+                down_url = sibling_elements[2].find_elements(By.XPATH, "*")[0].get_attribute("href")
 
                 save_path = os.path.join(
                     download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}"
@@ -404,7 +408,7 @@ class eSUB:
             self.driver_session.switch_to.window(self.driver_session.window_handles[0])
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements_by_xpath("//*[@onmouseover]")
+        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -422,7 +426,7 @@ class eSUB:
         pathlib.Path(project_files_download_path).mkdir(parents=True, exist_ok=True)
 
         # Get all the download as PDF items
-        items_to_download = self.driver_session.find_elements_by_css_selector('[alt="Download as PDF"]')
+        items_to_download = self.driver_session.find_elements(By.CSS_SELECTOR, '[alt="Download as PDF"]')
 
         # For some reason this wants things from the bottom up, or it hangs.
         for item in items_to_download[::-1]:
@@ -430,7 +434,7 @@ class eSUB:
             sleep(3)
 
             # select all checkboxes not already checked
-            check_boxes = self.driver_session.find_elements_by_css_selector('[type="checkbox"')
+            check_boxes = self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"')
             for check_box in check_boxes:
                 # lazy checks for checkboxes that may exist but shouldn't be clicked
                 if (
@@ -445,7 +449,7 @@ class eSUB:
                     check_box.click()
 
             # Get all the buttons but only do stuff for ones that say "Download PDF File"
-            for button in self.driver_session.find_elements_by_css_selector(".ui-button-text"):
+            for button in self.driver_session.find_elements(By.CSS_SELECTOR, ".ui-button-text"):
                 if button.text == "Download PDF File":
 
                     # Clean up any existing files first before downloading
@@ -473,7 +477,7 @@ class eSUB:
                     break  # There is only one button that we click once, so break
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements_by_xpath("//*[@onmouseover]")
+        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -488,7 +492,7 @@ class eSUB:
         self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
 
         # get all the download links
-        items_to_download = e.driver_session.find_elements_by_css_selector('[onclick="down(this)"]')
+        items_to_download = e.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
         for item in items_to_download:
             down_url = item.get_attribute("data-url")
 
@@ -506,7 +510,7 @@ class eSUB:
             )
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements_by_xpath("//*[@onmouseover]")
+        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -523,19 +527,19 @@ class eSUB:
 
         if element_id is not None and element_name is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: x.find_element_by_id(element_id).is_displayed()
+                lambda x: x.find_element(By.ID, element_id).is_displayed()
             )
         elif element_name is not None and element_id is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: x.find_element_by_name(element_name).is_displayed()
+                lambda x: x.find_element(By.NAME, element_name).is_displayed()
             )
         elif css_selector is not None and element_id is None and element_name is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: len(x.find_elements_by_css_selector(css_selector)) > 0
+                lambda x: len(x.find_elements(By.CSS_SELECTOR, css_selector)) > 0
             )
         elif class_name is not None and element_id is None and element_name is None and css_selector is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: len(x.find_elements_by_class_name(class_name))
+                lambda x: len(x.find_elements(By.CLASS_NAME, class_name))
             )
         else:
             raise ValueError("Bad _wait_for combo", element_id, element_name, timeout)
@@ -566,8 +570,8 @@ class eSUB:
             new_height = self.driver_session.execute_script("return document.body.scrollHeight")
 
         # Try #4
-        scroll_window_location = self.driver_session.find_element_by_css_selector(".infinite-scroll-container")
-        action = webdriver.common.action_chains.ActionChains(self.driver_session)
+        scroll_window_location = self.driver_session.find_element(By.CSS_SELECTOR, ".infinite-scroll-container")
+        action = ActionChains(self.driver_session)
         action.move_to_element_with_offset(scroll_window_location, 5, 5)
         action.perform()
 

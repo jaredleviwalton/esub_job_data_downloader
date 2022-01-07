@@ -447,7 +447,6 @@ class eSUB:
 
         # For some reason this wants things from the bottom up, or it hangs.
         for item in items_to_download[::-1]:
-            ActionChains(self.driver_session).move_to_element(item).perform()
             try:
                 item.click()
             except:
@@ -493,6 +492,11 @@ class eSUB:
                 if is_checked is None:
                     check_box.click()
 
+            # Check that all boxes are checked
+            for box in self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"'):
+                if box.get_attribute("checked") is None:
+                    raise Exception("Not all boxes checked!")
+
             # Get all the buttons but only do stuff for ones that say "Download PDF File"
             for button in self.driver_session.find_elements(By.CSS_SELECTOR, ".ui-button-text"):
                 if button.text == "Download PDF File":
@@ -502,7 +506,6 @@ class eSUB:
                     for file in files:
                         os.remove(file)
 
-                    sleep(0.5)  # wait half a beat after checking boxes
                     button.click()
                     self._wait_for_chrome_downloads(number_of_files=1)
 
@@ -539,7 +542,6 @@ class eSUB:
         # get all the download links
         items_to_download = e.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
         for item in items_to_download:
-            ActionChains(self.driver_session).move_to_element(item).perform()
             down_url = item.get_attribute("data-url")
 
             # it's some weird half link windows path, that their backend handles
@@ -569,8 +571,6 @@ class eSUB:
     def _wait_for(
         self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
     ):
-
-        sleep(1)
 
         if element_id is not None and element_name is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(

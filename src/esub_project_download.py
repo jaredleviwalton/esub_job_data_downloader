@@ -281,9 +281,8 @@ class eSUB:
             if menu_name in str(dropdown.accessible_name):
                 dropdown.click()
 
-                sleep(2)
-
                 # get the projects files sub menu item and click on it
+                self._wait_for(css_selector=".es-dropdown-menu__item", text=sub_menu_name)
                 sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
                 for item in sub_menus:
                     if sub_menu_name in item.text:

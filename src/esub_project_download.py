@@ -123,14 +123,13 @@ class eSUB:
             print(project_url)
 
     def _get_windows_path_safe_string(self, string) -> str:
-        return re.sub(r'[\\/\:*"<>\|\.%\$\^]', "", string)
+        return re.sub(r'[\\/\:*"<>\|\?]', "", string)
 
     def _do_download_action(self, function):
         self.driver_session.get(self.project_url)
         self._wait_for(class_name="es-project-summary__title")
         self._wait_for(class_name="es-budget-bar__title")
         function()
-        breakpoint
 
     def download_files(self) -> None:
 

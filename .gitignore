@@ -2,7 +2,7 @@
 **/*.pyc
 
 # file with usernames and passwords
-_users_and_passwords.py
+src/_secrets.py
 
 # virtual environment for this project
 .venv

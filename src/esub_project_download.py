@@ -118,6 +118,12 @@ class eSUB:
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\.%\$\^]', "", string)
 
+    def _do_download_action(self, project_url, function):
+        self.driver_session.get(project_url)
+        self._wait_for(class_name="es-project-summary__title")
+        function()
+        breakpoint
+
     def download_files(self) -> None:
 
         for project_url in tqdm(self.PROJECT_URLS):
@@ -146,94 +152,35 @@ class eSUB:
             print(project_download_folder)
             pathlib.Path(project_download_folder).mkdir(parents=True, exist_ok=True)
 
-            # required items to get
-            self._get_files(project_download_folder, "Project Files")
+            # fmt: off
 
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_files(project_download_folder, "Company Files")
+            # Project tab
+            self._do_download_action(project_url, lambda: self._get_emails(project_download_folder, "Project", "Project Inbox"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Project", "Contacts", download_files=False))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Project", "Issues"))
 
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Change Order Requests")
+            # Construction Docs tab
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Field Notes"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Daily Reports"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Requests For Information"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Submittals"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Meeting Minutes"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Equipment Rental"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Correspondence Log"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Drawing Sets"))
 
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Requests For Information")
+            # Job Cost Docs tab
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Change Order Requests"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Purchase Orders"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontracts"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontract Change Orders"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Pay Applications"))
 
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Submittals")
+            # Files tab
+            self._do_download_action(project_url, lambda: self._get_files(project_download_folder, "Project Files"))
+            self._do_download_action(project_url, lambda: self._get_files(project_download_folder, "Company Files"))
 
-            # Extras
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Purchase Orders")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontracts")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontract Change Orders")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Pay Applications")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Field Notes")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Meeting Minutes")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Equipment Rental")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Correspondence Log")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Project", "Issues")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Daily Reports")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Construction Docs", "Drawing Sets")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_emails(project_download_folder, "Project", "Project Inbox")
-
-            self.driver_session.get(project_url)
-            # sleep(3)
-            self._wait_for(class_name="es-project-summary__title")
-            self._get_typical_page_docs(project_download_folder, "Project", "Contacts", download_files=False)
+            # fmt: on
 
     def _get_files(self, project_download_folder, sub_job_cost_doc_item):
         # get the files dropdown and click on it

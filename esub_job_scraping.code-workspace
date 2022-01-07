@@ -5,10 +5,10 @@
         }
     ],
     "settings": {
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.linting.pycodestyleEnabled": true,
-        "python.languageServer": "Pylance",
+        // "python.linting.enabled": true,
+        // "python.linting.pylintEnabled": true,
+        // "python.linting.pycodestyleEnabled": true,
+        // "python.languageServer": "Pylance",
         "python.defaultInterpreterPath": "./.venv/bin/python", // python3 -m venv .venv
         "cSpell.language": "en-US",
         "cSpell.words": [
@@ -21,23 +21,23 @@
         "autoDocstring.quoteStyle": "'''",
         // Draw vertical white lines for reminders
         // At 80 columns you should start thinking of line breaks for comments.
-        // At 132 columns you should start thinking of line breaks for code.
+        // At 119 columns you should start thinking of line breaks for code.
         "[python]": {
             "editor.rulers": [
                 80,
-                132
+                119
             ],
         },
         "[shellscript]": {
             "editor.rulers": [
                 80,
-                132
+                119
             ],
         },
         "[powershell]": {
             "editor.rulers": [
                 80,
-                132
+                119
             ],
         },
         // https://pep8.readthedocs.io/en/latest/intro.html#configuration
@@ -60,7 +60,26 @@
             "test_*.py"
         ],
         "python.testing.pytestEnabled": false,
-        "python.testing.unittestEnabled": true
+        "python.testing.unittestEnabled": true,
+        "python.formatting.autopep8Path": "black",
+        "editor.formatOnSave": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackArgs": [
+            "--line-length",
+            "119"
+        ],
+        "python.linting.flake8Path": "black",
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true,
+        "python.linting.flake8Args": [
+            "--ignore=E203",
+            "--ignore=E266",
+            "--ignore=E501",
+            "--ignore=W503",
+            "--max-line-length=119",
+            "--select = B,C,E,F,W,T4,B9,B950",
+            "--max-complexity = 18"
+        ],
     },
     // End settings
     "extensions": {

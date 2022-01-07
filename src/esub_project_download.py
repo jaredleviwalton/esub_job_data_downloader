@@ -512,11 +512,11 @@ class eSUB:
                     self.driver_session.switch_to.window(self.driver_session.window_handles[0])
 
                     # move to payload folder
-                    files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)
-                    pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files[0])).replace(
+                    files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only expect one file
+                    pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
                         os.path.join(
                             project_files_download_path,
-                            re.sub(r".\d{8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files[0]), count=0, flags=0),
+                            re.sub(r".\d{6,8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files), count=0, flags=0),
                         )
                     )
                     break  # There is only one button that we click once, so break

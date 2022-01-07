@@ -148,44 +148,44 @@ class eSUB:
             project_name = self._get_windows_path_safe_string(project_name)
 
             # the project download folder is the url id + the project name
-            project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-            print(project_download_folder)
-            pathlib.Path(project_download_folder).mkdir(parents=True, exist_ok=True)
+            self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
+            print(f"{project_url} -> {self.project_download_folder}")
+            pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # fmt: off
 
             # Project tab
-            self._do_download_action(project_url, lambda: self._get_emails(project_download_folder, "Project", "Project Inbox"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Project", "Contacts", download_files=False))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Project", "Issues"))
+            self._do_download_action(project_url, lambda: self._get_emails("Project", "Project Inbox"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Project", "Issues"))
 
             # Construction Docs tab
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Field Notes"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Daily Reports"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Requests For Information"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Submittals"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Meeting Minutes"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Equipment Rental"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Correspondence Log"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Construction Docs", "Drawing Sets"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Field Notes"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Submittals"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets"))
 
             # Job Cost Docs tab
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Change Order Requests"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Purchase Orders"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontracts"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Subcontract Change Orders"))
-            self._do_download_action(project_url, lambda: self._get_typical_page_docs(project_download_folder, "Job Cost Docs", "Pay Applications"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders"))
+            self._do_download_action(project_url, lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications"))
 
             # Files tab
-            self._do_download_action(project_url, lambda: self._get_files(project_download_folder, "Project Files"))
-            self._do_download_action(project_url, lambda: self._get_files(project_download_folder, "Company Files"))
+            self._do_download_action(project_url, lambda: self._get_files("Files", "Project Files"))
+            self._do_download_action(project_url, lambda: self._get_files("Files", "Company Files"))
 
             # fmt: on
 
-    def _get_files(self, project_download_folder, sub_job_cost_doc_item):
+    def _get_files(self, menu_name, sub_job_cost_doc_item):
         # get the files dropdown and click on it
         for dropdown in self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger"):
-            if "Files" == dropdown.text:
+            if menu_name == dropdown.text:
                 dropdown.click()
 
                 sleep(1)
@@ -196,13 +196,13 @@ class eSUB:
                         item.click()
                         break
 
-                pathlib.Path(os.path.join(project_download_folder, "Files", sub_job_cost_doc_item)).mkdir(
+                pathlib.Path(os.path.join(self.project_download_folder, menu_name, sub_job_cost_doc_item)).mkdir(
                     parents=True, exist_ok=True
                 )
 
-                self._download_project_files(project_download_folder, sub_job_cost_doc_item)
+                self._download_project_files(menu_name, sub_job_cost_doc_item)
 
-    def _get_emails(self, project_download_folder, tab_name, sub_job_cost_doc_item):
+    def _get_emails(self, tab_name, sub_job_cost_doc_item):
         # get the files dropdown and click on it
         menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger")
         for dropdown in menus:
@@ -222,7 +222,7 @@ class eSUB:
                 self._wait_for(
                     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
                 )
-                pathlib.Path(os.path.join(project_download_folder, tab_name)).mkdir(parents=True, exist_ok=True)
+                pathlib.Path(os.path.join(self.project_download_folder, tab_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
                 on_mouse_over_items = self.driver_session.find_elements_by_xpath('//*[@name="IconXLS1"]')
@@ -241,17 +241,17 @@ class eSUB:
                         # only expect one file
                         files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]
                         pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
-                            os.path.join(project_download_folder, tab_name, f"{sub_job_cost_doc_item}.xls")
+                            os.path.join(self.project_download_folder, tab_name, f"{sub_job_cost_doc_item}.xls")
                         )
                         # sleep(2)
                         break
 
                 # download files
-                self._save_email(project_download_folder, tab_name, sub_job_cost_doc_item)
+                self._save_email(tab_name, sub_job_cost_doc_item)
 
                 break
 
-    def _get_typical_page_docs(self, project_download_folder, menu_name, sub_menu_name, download_files=True):
+    def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True):
         # get the files dropdown and click on it
         menus = self.driver_session.find_elements_by_css_selector(".es-dropdown-menu-trigger")
         for dropdown in menus:
@@ -271,7 +271,7 @@ class eSUB:
                 self._wait_for(
                     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
                 )
-                pathlib.Path(os.path.join(project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
+                pathlib.Path(os.path.join(self.project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
                 on_mouse_over_items = self.driver_session.find_elements_by_xpath('//*[@name="IconXLS1"]')
@@ -292,13 +292,13 @@ class eSUB:
 
                         # move to correct location
                         pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
-                            os.path.join(project_download_folder, menu_name, f"{sub_menu_name}.xls")
+                            os.path.join(self.project_download_folder, menu_name, f"{sub_menu_name}.xls")
                         )
 
                         break  # We are done here, don't try to process inactive menu items
 
                 if download_files:
-                    self._download_pdf_files(project_download_folder, menu_name, sub_menu_name)
+                    self._download_pdf_files(menu_name, sub_menu_name)
 
                 break  # We are done here, don't try to process inactive menu items
 
@@ -330,10 +330,10 @@ class eSUB:
 
         # TODO: Throw error or do something to handle timeout
 
-    def _save_email(self, project_download_folder, tab_name, sub_job_cost_doc_item):
+    def _save_email(self, tab_name, sub_job_cost_doc_item):
 
         # Setup project email download path
-        download_path = os.path.join(project_download_folder, tab_name, sub_job_cost_doc_item)
+        download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(download_path).mkdir(parents=True, exist_ok=True)
 
         items_to_download = self.driver_session.find_elements_by_css_selector(
@@ -409,15 +409,15 @@ class eSUB:
                 item.click()
 
                 # recuse for each next page
-                self._save_email(project_download_folder, tab_name, sub_job_cost_doc_item)
+                self._save_email(tab_name, sub_job_cost_doc_item)
 
                 break  # probably don't need this but don't want to test it
 
-    def _download_pdf_files(self, project_download_folder, tab_name, sub_job_cost_doc_item):
+    def _download_pdf_files(self, tab_name, sub_job_cost_doc_item):
 
         self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
 
-        project_files_download_path = os.path.join(project_download_folder, tab_name, sub_job_cost_doc_item)
+        project_files_download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(project_files_download_path).mkdir(parents=True, exist_ok=True)
 
         # Get all the download as PDF items
@@ -478,11 +478,11 @@ class eSUB:
                 item.click()
 
                 # recuse for each next page
-                self._download_pdf_files(project_download_folder, tab_name, sub_job_cost_doc_item)
+                self._download_pdf_files(tab_name, sub_job_cost_doc_item)
 
                 break  # probably don't need this but don't want to test it
 
-    def _download_project_files(self, project_download_folder, sub_job_cost_doc_item):
+    def _download_project_files(self, menu_name, sub_job_cost_doc_item):
 
         self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
 
@@ -497,7 +497,10 @@ class eSUB:
             urlretrieve(
                 url_quote(f"https://www.esubonline.com{sanitized_down_url}", safe="/:?&()"),
                 os.path.join(
-                    project_download_folder, "Files", sub_job_cost_doc_item, os.path.basename(sanitized_down_url)
+                    self.project_download_folder,
+                    menu_name,
+                    sub_job_cost_doc_item,
+                    os.path.basename(sanitized_down_url),
                 ),
             )
 
@@ -508,7 +511,7 @@ class eSUB:
                 item.click()
 
                 # recuse for each next page
-                self._download_project_files(project_download_folder, sub_job_cost_doc_item)
+                self._download_project_files(menu_name, sub_job_cost_doc_item)
 
                 break  # probably don't need this but don't want to test it
 

@@ -215,13 +215,10 @@ class eSUB:
             self._do_download_action(lambda: self._get_files("Files", "Company Files"))
 
             # fmt: on
-<<<<<<< HEAD
-            
+
             for i in range(get_terminal_size()[0]):
-                print("=", end='')
+                print("=", end="")
             print("\n")
-=======
->>>>>>> 672caa766aab8d7bea636f9cf30134962db9be14
 
     def _get_files(self, menu_name, sub_job_cost_doc_item):
         my_vars = list(locals().values())
@@ -415,6 +412,7 @@ class eSUB:
             email_save_path = os.path.join(download_path, f"{email_number} - {email_name}.pdf")
 
             # Print email and move to project email folder
+            if not os.path.exists(email_save_path):
                 self.driver_session.execute_script("window.print();")
                 sleep(5)
                 files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only one file expected
@@ -602,11 +600,9 @@ class eSUB:
     def _wait_for(
         self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
     ):
-<<<<<<< HEAD
+
         sleep(5)
-=======
-        sleep(3)
->>>>>>> 02b7cebd397886b2ee2cf9395c79ddf8a294ecb5
+
         if element_id is not None and element_name is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: x.find_element(By.ID, element_id).is_displayed()

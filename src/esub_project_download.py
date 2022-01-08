@@ -23,10 +23,12 @@ SOFTWARE.
 """
 
 import json
+from multiprocessing.context import Process
 import os
 import pathlib
 import re
 from time import sleep
+from typing import List
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
 
@@ -57,7 +59,21 @@ class eSUB:
     EXISTING_SESSION_URL = "http://localhost:55185"
     EXISTING_SESSION_ID = "a43ba8c76f344a3f064797247aa41ae4"
 
-    def __init__(self, use_existing_session=False) -> None:
+    def __init__(self, use_existing_session=False, tmp_subfolder=None, my_url_list=None) -> None:
+
+        # setup folder paths
+        pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(self.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
+
+        # Used for multiprocessing
+        if tmp_subfolder is not None:
+            self.CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, tmp_subfolder)
+            pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
+
+        if my_url_list is not None:
+            self.PROJECT_URLS = my_url_list
+
+        # Setup chromedriver
         if use_existing_session:
             self.driver_session = Remote(command_executor=self.EXISTING_SESSION_URL, desired_capabilities={})
             self.driver_session.close()
@@ -88,11 +104,15 @@ class eSUB:
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
             chrome_options.add_argument("log-level=3")  # ignore warnings
+            chrome_options.add_argument("--new-window")
             self.driver_session = Chrome("chromedriver", chrome_options=chrome_options)
             print(f"{self.driver_session.command_executor._url=}")  # We'll need this for keeping this session
             print(f"{self.driver_session.session_id=}")  # We'll need this for keeping this session
             print("\n")
             self._login()
+
+        # Start doing the work
+        self.download_files()
 
     def _login(self) -> None:
         self.driver_session.get(self.LOGIN_URL)
@@ -289,7 +309,7 @@ class eSUB:
                         item.click()
                         break
 
-                # sleep(4)
+                sleep(4)
                 self._wait_for(
                     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
                 )
@@ -380,11 +400,12 @@ class eSUB:
             self.driver_session.switch_to.window(self.driver_session.window_handles[-1])
 
             # The name is the only element with this bg class on the page
-            email_name = e.driver_session.find_elements(By.XPATH, '//*[@class="bgcolor3"]')[0].accessible_name
+            email_name = self.driver_session.find_elements(By.XPATH, '//*[@class="bgcolor3"]')[0].accessible_name
             email_name = self._get_windows_path_safe_string(email_name)
 
             # Print email and move to project email folder
-            e.driver_session.execute_script("window.print();")
+            self.driver_session.execute_script("window.print();")
+            sleep(1)
             files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only one file expected
             pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
                 os.path.join(download_path, f"{email_number} - {email_name}.pdf")
@@ -425,7 +446,7 @@ class eSUB:
             self.driver_session.switch_to.window(self.driver_session.window_handles[0])
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
+        next_page = self.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -475,7 +496,7 @@ class eSUB:
                 if not found:
                     raise Exception("Attempting to find a matching item failed.")
 
-            self._wait_for(css_selector=".ui-button-text", text="Download PDF File")
+            sleep(4)
 
             # select all checkboxes not already checked
             check_boxes = self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"')
@@ -492,10 +513,15 @@ class eSUB:
                 if is_checked is None:
                     check_box.click()
 
-            # Check that all boxes are checked
-            for box in self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"'):
-                if box.get_attribute("checked") is None:
-                    raise Exception("Not all boxes checked!")
+            sleep(0.25)
+            # # Ensure that all boxes are checked
+            # for box in self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"'):
+            #     if (
+            #         box.get_attribute("name") != "DnDHours"
+            #         and box.get_attribute("name") != "checkboxLastRev"
+            #         and box.get_attribute("checked") is None
+            #     ):
+            #         raise Exception("Not all boxes checked!")
 
             # Get all the buttons but only do stuff for ones that say "Download PDF File"
             for button in self.driver_session.find_elements(By.CSS_SELECTOR, ".ui-button-text"):
@@ -525,7 +551,7 @@ class eSUB:
                     break  # There is only one button that we click once, so break
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
+        next_page = self.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -540,7 +566,7 @@ class eSUB:
         self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
 
         # get all the download links
-        items_to_download = e.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
+        items_to_download = self.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
         for item in items_to_download:
             down_url = item.get_attribute("data-url")
 
@@ -558,7 +584,7 @@ class eSUB:
             )
 
         # if there is a next page, download that
-        next_page = e.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
+        next_page = self.driver_session.find_elements(By.XPATH, "//*[@onmouseover]")
         for item in next_page:
             if item.accessible_name == "Go to next page":
                 item.click()
@@ -571,7 +597,7 @@ class eSUB:
     def _wait_for(
         self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
     ):
-
+        sleep(3)
         if element_id is not None and element_name is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: x.find_element(By.ID, element_id).is_displayed()
@@ -661,6 +687,22 @@ class eSUB:
         action.perform()
 
 
+def split_list(a, n):
+    n = min(n, len(a))
+    k, m = divmod(len(a), n)
+    return list((a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n)))
+
+
 if __name__ == "__main__":
-    e = eSUB()
-    e.download_files()
+    # e = eSUB(tmp_subfolder="zero")
+    mp_list: List[Process] = []
+
+    i = 0
+    for list_part in split_list(unp.PROJECT_URLS, 2):
+        i += 1
+        p = Process(target=eSUB, kwargs={"tmp_subfolder": f"thread{i}", "my_url_list": list_part})
+        mp_list.append(p)
+        mp_list[-1].start()
+
+    for p in mp_list:
+        p.join()

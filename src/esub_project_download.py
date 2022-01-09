@@ -29,6 +29,7 @@ import pathlib
 import re
 from time import sleep
 from typing import List
+from shutil import get_terminal_size
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
 
@@ -214,6 +215,13 @@ class eSUB:
             self._do_download_action(lambda: self._get_files("Files", "Company Files"))
 
             # fmt: on
+<<<<<<< HEAD
+            
+            for i in range(get_terminal_size()[0]):
+                print("=", end='')
+            print("\n")
+=======
+>>>>>>> 672caa766aab8d7bea636f9cf30134962db9be14
 
     def _get_files(self, menu_name, sub_job_cost_doc_item):
         my_vars = list(locals().values())

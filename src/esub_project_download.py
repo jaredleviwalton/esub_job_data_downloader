@@ -153,6 +153,7 @@ class eSUB:
 
     def download_files(self) -> None:
 
+        # for project_url in self.PROJECT_URLS:
         for project_url in tqdm(self.PROJECT_URLS):
             print("\n")
 
@@ -179,6 +180,9 @@ class eSUB:
             self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
             print(self.project_url)
             print(self.project_download_folder)
+            # print(
+            #     f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
+            # )
             pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # fmt: off
@@ -211,8 +215,6 @@ class eSUB:
 
             # fmt: on
 
-            print("\n\n")
-
     def _get_files(self, menu_name, sub_job_cost_doc_item):
         my_vars = list(locals().values())
         print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
@@ -223,7 +225,7 @@ class eSUB:
             if menu_name == dropdown.text:
                 dropdown.click()
 
-                sleep(1)
+                sleep(5)
 
                 # get the projects files sub menu item and click on it
                 for item in self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item"):
@@ -248,7 +250,7 @@ class eSUB:
             if tab_name in str(dropdown.accessible_name):
                 dropdown.click()
 
-                sleep(2)
+                sleep(5)
 
                 # get the projects files sub menu item and click on it
                 sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
@@ -257,7 +259,7 @@ class eSUB:
                         item.click()
                         break
 
-                # sleep(5)
+                sleep(5)
                 self._wait_for(
                     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
                 )
@@ -309,7 +311,7 @@ class eSUB:
                         item.click()
                         break
 
-                sleep(4)
+                sleep(5)
                 self._wait_for(
                     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
                 )
@@ -389,7 +391,7 @@ class eSUB:
             email_number = number_element.find_element(By.XPATH, "../..").text
 
             item.click()
-            sleep(3)
+            sleep(5)
 
             # Clean up any existing files first before downloading
             files = list(pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).glob("**/*"))
@@ -402,14 +404,13 @@ class eSUB:
             # The name is the only element with this bg class on the page
             email_name = self.driver_session.find_elements(By.XPATH, '//*[@class="bgcolor3"]')[0].accessible_name
             email_name = self._get_windows_path_safe_string(email_name)
+            email_save_path = os.path.join(download_path, f"{email_number} - {email_name}.pdf")
 
             # Print email and move to project email folder
-            self.driver_session.execute_script("window.print();")
-            sleep(1)
-            files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only one file expected
-            pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
-                os.path.join(download_path, f"{email_number} - {email_name}.pdf")
-            )
+                self.driver_session.execute_script("window.print();")
+                sleep(5)
+                files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only one file expected
+                pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(email_save_path)
 
             # Attachment links are next to these icons, so get all of them
             attachment_icon_elements = self.driver_session.find_elements(
@@ -434,12 +435,8 @@ class eSUB:
                 )
 
                 if os.path.exists(save_path):
-                    # TODO: hacky check for duplicate email attachment
-                    # if broken here write increment logic
-                    raise Exception(" duplicate email attachment, write increment logic!")
-
-                # Download attachment
-                urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
+                    # Download attachment
+                    urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
 
             # Close Tab and switch context to main tab
             self.driver_session.close()
@@ -496,7 +493,7 @@ class eSUB:
                 if not found:
                     raise Exception("Attempting to find a matching item failed.")
 
-            sleep(4)
+            sleep(5)
 
             # select all checkboxes not already checked
             check_boxes = self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"')
@@ -597,7 +594,11 @@ class eSUB:
     def _wait_for(
         self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
     ):
+<<<<<<< HEAD
+        sleep(5)
+=======
         sleep(3)
+>>>>>>> 02b7cebd397886b2ee2cf9395c79ddf8a294ecb5
         if element_id is not None and element_name is None and css_selector is None and class_name is None:
             WebDriverWait(driver=self.driver_session, timeout=timeout).until(
                 lambda x: x.find_element(By.ID, element_id).is_displayed()
@@ -694,15 +695,17 @@ def split_list(a, n):
 
 
 if __name__ == "__main__":
-    # e = eSUB(tmp_subfolder="zero")
-    mp_list: List[Process] = []
+    e = eSUB(tmp_subfolder="zero")
+    # mp_list: List[Process] = []
 
-    i = 0
-    for list_part in split_list(unp.PROJECT_URLS, 2):
-        i += 1
-        p = Process(target=eSUB, kwargs={"tmp_subfolder": f"thread{i}", "my_url_list": list_part})
-        mp_list.append(p)
-        mp_list[-1].start()
+    # num_concurrent_procs = 10
 
-    for p in mp_list:
-        p.join()
+    # i = 0
+    # for list_part in split_list(unp.PROJECT_URLS, num_concurrent_procs):
+    #     i += 1
+    #     p = Process(target=eSUB, kwargs={"tmp_subfolder": f"thread{i}", "my_url_list": list_part})
+    #     mp_list.append(p)
+    #     mp_list[-1].start()
+
+    # for p in mp_list:
+    #     p.join()

@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 import json
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from multiprocessing.context import Process
 import os
 import pathlib
@@ -31,8 +31,10 @@ import random
 import re
 import timeit
 from time import sleep
+import traceback
 from typing import List, Tuple
 from shutil import Error, get_terminal_size, rmtree
+from uuid import uuid1, uuid4
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
 
@@ -64,7 +66,11 @@ class eSUB:
     EXISTING_SESSION_ID = "a43ba8c76f344a3f064797247aa41ae4"
 
     def __init__(
-        self, project_url, use_existing_session: Tuple[str, str] = None, tmp_subfolder=None, my_url_list=None
+        self,
+        project_url,
+        use_existing_session: Tuple[str, str] = None,
+        my_url_list=None,
+        download_proj=True,
     ):
 
         # setup folder paths
@@ -72,7 +78,7 @@ class eSUB:
         pathlib.Path(self.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
 
         # Used for multiprocessing
-        self.CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, f"_{random.randint(0,1000)}")
+        self.CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, f"{uuid4()}")
         pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
 
         if my_url_list is not None:
@@ -120,7 +126,8 @@ class eSUB:
 
             self._login()
 
-        self.download_project(project_url)
+        if download_proj:
+            self.download_project(project_url)
 
     def _login(self) -> None:
         self.driver_session.get(self.LOGIN_URL)
@@ -190,7 +197,7 @@ class eSUB:
 
         # for project_url in self.PROJECT_URLS:
         for project_url in tqdm(self.PROJECT_URLS):
-            # print("\n")
+            print("\n")
 
             # Load the project page
             self.driver_session.get(project_url)
@@ -212,9 +219,9 @@ class eSUB:
             project_name = self._get_windows_path_safe_string(project_name)
 
             # the project download folder is the url id + the project name
-            self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-            # print(self.project_url)
-            # print(self.project_download_folder)
+            # self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
+            print(self.project_url)
+            print(self.project_download_folder)
             print(
                 f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
             )
@@ -223,36 +230,36 @@ class eSUB:
             # fmt: off
 
             # Project tab
-            self._do_download_action(lambda: self._get_emails("Project", "Project Inbox"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Issues"))
+            self._do_download_action(lambda: self._get_emails("Project", "Project Inbox", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Issues", log_info=True))
 
             # Construction Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Field Notes"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Submittals"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Submittals", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=True))
 
             # Job Cost Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications"))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=True))
+            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=True))
 
             # Files tab
-            self._do_download_action(lambda: self._get_files("Files", "Project Files"))
-            self._do_download_action(lambda: self._get_files("Files", "Company Files"))
+            self._do_download_action(lambda: self._get_files("Files", "Project Files", log_info=True))
+            self._do_download_action(lambda: self._get_files("Files", "Company Files", log_info=True))
 
             # fmt: on
 
-            # for i in range(get_terminal_size()[0]):
-            #     print("=", end="")
-            # print("\n")
+            for i in range(get_terminal_size()[0]):
+                print("=", end="")
+            print("\n")
 
     def download_project(self, project_url) -> None:
         try:
@@ -283,9 +290,9 @@ class eSUB:
             self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
             # print(self.project_url)
             # print(self.project_download_folder)
-            print(
-                f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
-            )
+            # print(
+            #     f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
+            # )
             pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # fmt: off
@@ -322,24 +329,40 @@ class eSUB:
             #     print("=", end="")
             # print("\n")
         except Exception as e:
-            for i in range(get_terminal_size()[0]):
+            debug_log = ""
+            debug_log += f"{self.project_url}"
+            debug_log += f"{self.project_download_folder}"
+            debug_log += "\n"
+            debug_log += f"{e}"
+            debug_log += "\n"
+            debug_log += f"{traceback.format_exc()}"
+            debug_log += "\n"
+            debug_log += f"{self.project_url}"
+            debug_log += f"{self.project_download_folder}"
+
+            for _ in range(get_terminal_size()[0]):
                 print("=", end="")
-            print(self.project_url)
-            print(self.project_download_folder)
-            print("\n")
-            print(e)
-            print("\n")
-            print(self.project_url)
-            print(self.project_download_folder)
-            for i in range(get_terminal_size()[0]):
+            print(debug_log)
+            for _ in range(get_terminal_size()[0]):
                 print("=", end="")
+
+            debug_log_path = os.path.join(
+                self.DOWNLOAD_BASE_FOLDER, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
+            )
+            with open(debug_log_path, "w") as fh:
+                fh.write(debug_log)
+
+            # Cleanup
             rmtree(self.project_download_folder)
+            os.remove(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH))
         else:
             os.remove(os.path.join(self.DOWNLOAD_BASE_FOLDER, f"project_url_num_{os.path.basename(project_url)}"))
+            os.remove(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH))
 
-    def _get_files(self, menu_name, sub_job_cost_doc_item):
-        my_vars = list(locals().values())
-        # print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
+    def _get_files(self, menu_name, sub_job_cost_doc_item, log_info=False):
+        if log_info:
+            my_vars = list(locals().values())
+            print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")
@@ -361,9 +384,10 @@ class eSUB:
 
                 self._download_project_files(menu_name, sub_job_cost_doc_item)
 
-    def _get_emails(self, tab_name, sub_job_cost_doc_item):
-        my_vars = list(locals().values())
-        # print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
+    def _get_emails(self, tab_name, sub_job_cost_doc_item, log_info=False):
+        if log_info:
+            my_vars = list(locals().values())
+            print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")
@@ -414,9 +438,10 @@ class eSUB:
 
                 break
 
-    def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True):
-        my_vars = list(locals().values())
-        # print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
+    def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True, log_info=False):
+        if log_info:
+            my_vars = list(locals().values())
+            print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
         self._wait_for(css_selector=".es-dropdown-menu-trigger")
@@ -426,7 +451,7 @@ class eSUB:
                 dropdown.click()
 
                 # get the projects files sub menu item and click on it
-                self._wait_for(css_selector=".es-dropdown-menu__item", text=sub_menu_name)
+                sleep(3)
                 sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
                 for item in sub_menus:
                     if sub_menu_name in item.text:
@@ -434,9 +459,9 @@ class eSUB:
                         break
 
                 sleep(5)
-                self._wait_for(
-                    css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
-                )
+                # self._wait_for(
+                #     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
+                # )
                 pathlib.Path(os.path.join(self.project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
@@ -578,7 +603,7 @@ class eSUB:
 
     def _download_pdf_files(self, tab_name, sub_job_cost_doc_item):
 
-        self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
+        sleep(3)
 
         project_files_download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(project_files_download_path).mkdir(parents=True, exist_ok=True)
@@ -816,51 +841,37 @@ def split_list(a, n):
 
 
 def download_files_single_thread():
-    e = eSUB(tmp_subfolder="zero")
+    e = eSUB(None, download_proj=True)
+    e.download_files()
 
 
-def del_me(my_url):
-    print(my_url)
-    sleep(3)
-    ran_num = random.randint(1, 10)
-    if ran_num % 2 == 0:
-        raise Exception(f"{ran_num=}")
+if __name__ == "__main__":
 
+    # download_files_single_thread()
 
-def _handle_download(my_url) -> bool:
-    print(my_url)
-    try:
-        e = eSUB()
-        e.download_project(my_url)
-    # except Error as e:
-    except Exception as e:
-        print("Exception:")
-        print(e)
-
-
-def download_files_multi_processing(num_procs=3):
-
-    # Setup main window for handling
+    # TODO: Setup main window and get list of projects.
     # main_window = eSUB()
 
     working_url_list = unp.PROJECT_URLS
-    completed_url_list = []
+    random.shuffle(working_url_list)
 
-    # with Pool(num_procs) as p:
-    #     p.map(eSUB, working_url_list)
+    # Setup main folder
+    pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
 
+    # See what still needs to be gotten if we are picking back up from a previous run
     remaining_urls = pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*")
     if len(list(remaining_urls)) > 0:
         working_url_list = remaining_urls
 
-    # create file for each url with name being f"project_url_num_{url_number}"
+    # Create file for each url with name being f"project_url_num_{url_number}"
     for url_to_get in working_url_list:
         with open(
             os.path.join(unp.DOWNLOAD_BASE_FOLDER, f"project_url_num_{os.path.basename(url_to_get)}"), "a"
         ) as fh:
             fh.write(url_to_get)
 
-    # while grep "project_url_num_/d"
+    # TODO: This code will only run once, due to pool trying to pickle eSUB which uses lambdas, probably not worth
+    # re-writing this since it's a one and done. Just know it's gonna break and we have to re-run if there are items left.
     while pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*"):
         remaining_urls = pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*")
 
@@ -868,38 +879,7 @@ def download_files_multi_processing(num_procs=3):
         for url_path in remaining_urls:
             working_url_list.append(f"https://app.esub.com/project/{str(url_path).split('_')[-1]}")
 
-        start = timeit.timeit()
-        with Pool(num_procs) as p:
+        with Pool(cpu_count()) as p:  # On exception: see pickle issue above in TODO
             p.map(eSUB, working_url_list)
-        end = timeit.timeit()
-
-        print(f"Chunk Time = {end - start}")
-
-        breakpoint
-    breakpoint
-
-    # p = process
-    # p.start
-    # plist.add(p)
-
-    # after while loop
-    # for p in plist: p.join
-
-    # mp_list: List[Process] = []
-
-    # i = 0
-    # for list_part in split_list(unp.PROJECT_URLS, num_procs):
-    #     i += 1
-    #     p = Process(target=eSUB.download_files, kwargs={"tmp_subfolder": f"thread{i}", "my_url_list": list_part})
-    #     mp_list.append(p)
-    #     mp_list[-1].start()
-
-    # for p in mp_list:
-    #     p.join()
-
-
-if __name__ == "__main__":
-
-    # download_files_single_thread()
-
-    download_files_multi_processing(num_procs=10)
+            # for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):  # TODO: see pickle issue above
+            #     pass

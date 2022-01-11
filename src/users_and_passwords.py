@@ -34,6 +34,8 @@ PROJECTS_URL = "https://app.esub.com/project"
 BASE_FOLDER = r"C:\Users\jawalking\esub_payload_rc1"
 CHROME_DOWNLOAD_FOLDER_PATH = path.join(BASE_FOLDER, "downloads")
 DOWNLOAD_BASE_FOLDER = path.join(BASE_FOLDER, "payload")
+DEBUG_PATH = path.join(BASE_FOLDER, "debug")
+REMAINING_PATH = path.join(BASE_FOLDER, "remaining")
 
 PROJECT_URLS = [
     "https://app.esub.com/project/1",

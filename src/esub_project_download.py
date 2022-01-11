@@ -351,7 +351,7 @@ class eSUB:
                 print("=", end="")
 
             debug_log_path = os.path.join(
-                self.DOWNLOAD_BASE_FOLDER, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
+                unp.DEBUG_PATH, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
             )
             with open(debug_log_path, "w") as fh:
                 fh.write(debug_log)
@@ -799,21 +799,22 @@ if __name__ == "__main__":
 
     # Setup main folder
     pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(unp.REMAINING_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(unp.DEBUG_PATH).mkdir(parents=True, exist_ok=True)
 
     # See what still needs to be gotten if we are picking back up from a previous run
-    remaining_urls = pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*")
+    remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
     if len(list(remaining_urls)) > 0:
         working_url_list = remaining_urls
 
     # Create file for each url with name being f"project_url_num_{url_number}"
     for url_to_get in working_url_list:
-        with open(
-            os.path.join(unp.DOWNLOAD_BASE_FOLDER, f"project_url_num_{os.path.basename(url_to_get)}"), "a"
-        ) as fh:
+        with open(os.path.join(unp.REMAINING_PATH, f"project_url_num_{os.path.basename(url_to_get)}"), "a") as fh:
             fh.write(url_to_get)
 
-    while pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*"):
-        remaining_urls = pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*")
+    i = 0
+    while pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*") and i < 10:
+        remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
 
         working_url_list = []
         for url_path in remaining_urls:
@@ -825,3 +826,5 @@ if __name__ == "__main__":
             # p.map(eSUB, working_url_list)
             for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):
                 pass
+
+        i += 1

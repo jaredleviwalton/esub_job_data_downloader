@@ -120,6 +120,8 @@ class eSUB:
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # suppress dev tools loging
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
+            if unp.FULL_SCREEN_CHROME:
+                chrome_options.add_argument("--kiosk")
             chrome_options.add_argument("log-level=3")  # ignore warnings
             chrome_options.add_argument("--new-window")
             self.driver_session = Chrome("chromedriver", options=chrome_options)
@@ -175,20 +177,46 @@ class eSUB:
         sleep(300)
 
     # Use self.project_urls instead
-    def _get_projects(self):
+    def get_project_urls(self) -> List[str]:
         self.driver_session.get(self.PROJECTS_URL)
         sleep(7)
 
         # scroll down the page to force all projects to populate
         # TODO: this has problems, need to manually scroll or move mouse to middle
-        self._scroll_down_page()
+        # self._scroll_down_page()
 
-        # get projects list and keep it
-        self.projects = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
+        # action = ActionChains(self.driver_session)
 
-        for project in self.projects:
-            project_url = project.get_attribute("href")
-            # print(project_url)
+        # for _ in range(6):
+        #     project_elements = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
+        #     action.move_to_element(project_elements[-1])
+        #     action.perform()
+        #     location = project_elements[-1].location
+        #     sleep(1)
+
+        i = 1
+        screen_height = self.driver_session.execute_script("return window.screen.height;")
+        while True:
+            current_element = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
+            # scroll one screen height each time
+            self.driver_session.execute_script(
+                "{element}.scrollTo(0, {screen_height}*{i});".format(
+                    element=current_element, screen_height=screen_height, i=i
+                )
+            )
+            i += 1
+            sleep(5)
+            # update scroll height each time after scrolled, as the scroll height can change after we scrolled the page
+            scroll_height = self.driver_session.execute_script("return document.body.scrollHeight;")
+            # Break the loop when the height we need to scroll to is larger than the total scroll height
+            if (screen_height) * i > scroll_height:
+                break
+
+        project_urls = []
+        for project in self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card"):
+            project_urls.append(project.get_attribute("href"))
+
+        return project_urls
 
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\?]', "", string)
@@ -792,7 +820,8 @@ if __name__ == "__main__":
     # download_files_single_thread()
 
     # TODO: Setup main window and get list of projects.
-    # main_window = eSUB()
+    # main_window = eSUB(None, download_proj=False)
+    # project_urls = main_window.get_project_urls()
 
     working_url_list = unp.PROJECT_URLS
 

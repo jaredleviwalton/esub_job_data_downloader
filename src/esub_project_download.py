@@ -37,6 +37,7 @@ from shutil import Error, get_terminal_size, rmtree
 from uuid import uuid1, uuid4
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
+from selenium import webdriver
 
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
@@ -79,7 +80,11 @@ class eSUB:
 
         # Used for multiprocessing
         self.CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, f"{uuid4()}")
-        pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
+        if os.path.exists(self.CHROME_DOWNLOAD_FOLDER_PATH):
+            print("!!!!!!!!!! UUID4 collision !!!!!!!!!!!!!!!")
+            return
+        else:
+            pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
 
         if my_url_list is not None:
             self.PROJECT_URLS = my_url_list
@@ -113,6 +118,7 @@ class eSUB:
                 "savefile.default_directory": self.CHROME_DOWNLOAD_FOLDER_PATH,  # for pdf printing
             }
             chrome_options.add_experimental_option("prefs", prefs)
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # suppress dev tools loging
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
             chrome_options.add_argument("log-level=3")  # ignore warnings
             chrome_options.add_argument("--new-window")
@@ -132,7 +138,7 @@ class eSUB:
     def _login(self) -> None:
         self.driver_session.get(self.LOGIN_URL)
 
-        self._wait_for(element_id="txtUsername")
+        sleep(7)
 
         self.driver_session.find_element(By.ID, "txtUsername").send_keys(unp.USER_NAME)
         self.driver_session.find_element(By.ID, "txtPassword").send_keys(unp.USER_PASS)
@@ -150,7 +156,7 @@ class eSUB:
         url_id = os.path.basename(project_url)
 
         # get the project name
-        self._wait_for(class_name="es-project-summary__title")
+        sleep(7)
         project_name = (
             str(self.driver_session.find_elements(By.CLASS_NAME, "es-project-summary__title")[0].text)
             .strip(r"business")
@@ -171,7 +177,7 @@ class eSUB:
     # Use self.project_urls instead
     def _get_projects(self):
         self.driver_session.get(self.PROJECTS_URL)
-        self._wait_for(css_selector=".project-card")
+        sleep(7)
 
         # scroll down the page to force all projects to populate
         # TODO: this has problems, need to manually scroll or move mouse to middle
@@ -187,11 +193,10 @@ class eSUB:
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\?]', "", string)
 
-    def _do_download_action(self, function):
+    def _refresh_proj_page(self):
         self.driver_session.get(self.project_url)
-        self._wait_for(class_name="es-project-summary__title")
-        self._wait_for(class_name="es-budget-bar__title")
-        function()
+        sleep(7)
+        sleep(7)
 
     def download_files(self) -> None:
 
@@ -207,7 +212,7 @@ class eSUB:
             url_id = os.path.basename(project_url)
 
             # get the project name
-            self._wait_for(class_name="es-project-summary__title")
+            sleep(5)
             project_name = (
                 str(self.driver_session.find_elements(By.CLASS_NAME, "es-project-summary__title")[0].text)
                 .strip(r"business")
@@ -230,30 +235,30 @@ class eSUB:
             # fmt: off
 
             # Project tab
-            self._do_download_action(lambda: self._get_emails("Project", "Project Inbox", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Issues", log_info=True))
+            self._get_emails("Project", "Project Inbox", log_info=True)
+            self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=True)
+            self._get_typical_page_docs("Project", "Issues", log_info=True)
 
             # Construction Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Submittals", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=True))
+            self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Submittals", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=True)
+            self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=True)
 
             # Job Cost Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=True))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=True))
+            self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=True)
+            self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=True)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=True)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=True)
+            self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=True)
 
             # Files tab
-            self._do_download_action(lambda: self._get_files("Files", "Project Files", log_info=True))
-            self._do_download_action(lambda: self._get_files("Files", "Company Files", log_info=True))
+            self._get_files("Files", "Project Files", log_info=True)
+            self._get_files("Files", "Company Files", log_info=True)
 
             # fmt: on
 
@@ -275,7 +280,7 @@ class eSUB:
             url_id = os.path.basename(project_url)
 
             # get the project name
-            self._wait_for(class_name="es-project-summary__title")
+            sleep(7)
             project_name = (
                 str(self.driver_session.find_elements(By.CLASS_NAME, "es-project-summary__title")[0].text)
                 .strip(r"business")
@@ -298,47 +303,46 @@ class eSUB:
             # fmt: off
 
             # Project tab
-            self._do_download_action(lambda: self._get_emails("Project", "Project Inbox"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Contacts", download_files=False))
-            self._do_download_action(lambda: self._get_typical_page_docs("Project", "Issues"))
+            self._get_emails("Project", "Project Inbox", log_info=False)
+            self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=False)
+            self._get_typical_page_docs("Project", "Issues", log_info=False)
 
             # Construction Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Field Notes"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Daily Reports"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Requests For Information"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Submittals"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Meeting Minutes"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Equipment Rental"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Correspondence Log"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Construction Docs", "Drawing Sets"))
+            self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Submittals", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=False)
 
             # Job Cost Docs tab
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Change Order Requests"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Purchase Orders"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontracts"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders"))
-            self._do_download_action(lambda: self._get_typical_page_docs("Job Cost Docs", "Pay Applications"))
+            self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=False)
 
             # Files tab
-            self._do_download_action(lambda: self._get_files("Files", "Project Files"))
-            self._do_download_action(lambda: self._get_files("Files", "Company Files"))
+            self._get_files("Files", "Project Files", log_info=False)
+            self._get_files("Files", "Company Files", log_info=False)
 
             # fmt: on
 
             # for i in range(get_terminal_size()[0]):
             #     print("=", end="")
             # print("\n")
-        except Exception as e:
-            debug_log = ""
+        except:
+            debug_log = "\n"
             debug_log += f"{self.project_url}"
             debug_log += f"{self.project_download_folder}"
-            debug_log += "\n"
-            debug_log += f"{e}"
             debug_log += "\n"
             debug_log += f"{traceback.format_exc()}"
             debug_log += "\n"
             debug_log += f"{self.project_url}"
             debug_log += f"{self.project_download_folder}"
+            debug_log += "\n"
 
             for _ in range(get_terminal_size()[0]):
                 print("=", end="")
@@ -354,18 +358,21 @@ class eSUB:
 
             # Cleanup
             rmtree(self.project_download_folder)
-            os.remove(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH))
+            rmtree(self.CHROME_DOWNLOAD_FOLDER_PATH)
+            self.driver_session = None
         else:
+            rmtree(self.CHROME_DOWNLOAD_FOLDER_PATH)
             os.remove(os.path.join(self.DOWNLOAD_BASE_FOLDER, f"project_url_num_{os.path.basename(project_url)}"))
-            os.remove(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH))
+            self.driver_session = None
 
     def _get_files(self, menu_name, sub_job_cost_doc_item, log_info=False):
+        self._refresh_proj_page()
         if log_info:
             my_vars = list(locals().values())
             print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
-        self._wait_for(css_selector=".es-dropdown-menu-trigger")
+        sleep(5)
         for dropdown in self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger"):
             if menu_name == dropdown.text:
                 dropdown.click()
@@ -385,12 +392,13 @@ class eSUB:
                 self._download_project_files(menu_name, sub_job_cost_doc_item)
 
     def _get_emails(self, tab_name, sub_job_cost_doc_item, log_info=False):
+        self._refresh_proj_page()
         if log_info:
             my_vars = list(locals().values())
             print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
-        self._wait_for(css_selector=".es-dropdown-menu-trigger")
+        sleep(5)
         menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if tab_name in str(dropdown.accessible_name):
@@ -405,10 +413,7 @@ class eSUB:
                         item.click()
                         break
 
-                sleep(5)
-                self._wait_for(
-                    css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
-                )
+                sleep(10)
                 pathlib.Path(os.path.join(self.project_download_folder, tab_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
@@ -439,12 +444,13 @@ class eSUB:
                 break
 
     def _get_typical_page_docs(self, menu_name, sub_menu_name, download_files=True, log_info=False):
+        self._refresh_proj_page()
         if log_info:
             my_vars = list(locals().values())
             print(f"\t\t{my_vars[1]} -> {my_vars[2]}")
 
         # get the files dropdown and click on it
-        self._wait_for(css_selector=".es-dropdown-menu-trigger")
+        sleep(5)
         menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu-trigger")
         for dropdown in menus:
             if menu_name in str(dropdown.accessible_name):
@@ -708,7 +714,7 @@ class eSUB:
 
     def _download_project_files(self, menu_name, sub_job_cost_doc_item):
 
-        self._wait_for(css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]")
+        sleep(10)
 
         # get all the download links
         items_to_download = self.driver_session.find_elements(By.CSS_SELECTOR, '[onclick="down(this)"]')
@@ -738,69 +744,6 @@ class eSUB:
                 self._download_project_files(menu_name, sub_job_cost_doc_item)
 
                 break  # probably don't need this but don't want to test it
-
-    def _wait_for(
-        self, element_id=None, element_name=None, css_selector=None, class_name=None, timeout=300, text=None
-    ):
-
-        sleep(5)
-
-        if element_id is not None and element_name is None and css_selector is None and class_name is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: x.find_element(By.ID, element_id).is_displayed()
-            )
-
-            if text is not None:
-                self._wait_for_text(lambda: self.driver_session.find_element(By.ID, element_id), text, timeout)
-
-        elif element_name is not None and element_id is None and css_selector is None and class_name is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: x.find_element(By.NAME, element_name).is_displayed()
-            )
-
-            if text is not None:
-                self._wait_for_text(lambda: self.driver_session.find_element(By.NAME, element_name), text, timeout)
-
-        elif css_selector is not None and element_id is None and element_name is None and class_name is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: len(x.find_elements(By.CSS_SELECTOR, css_selector)) > 0
-            )
-
-            if text is not None:
-                self._wait_for_text(
-                    lambda: self.driver_session.find_elements(By.CSS_SELECTOR, css_selector), text, timeout
-                )
-
-        elif class_name is not None and element_id is None and element_name is None and css_selector is None:
-            WebDriverWait(driver=self.driver_session, timeout=timeout).until(
-                lambda x: len(x.find_elements(By.CLASS_NAME, class_name)) > 0
-            )
-
-            if text is not None:
-                self._wait_for_text(
-                    lambda: self.driver_session.find_elements(By.CLASS_NAME, class_name), text, timeout
-                )
-
-        else:
-            raise ValueError("Bad _wait_for combo", element_id, element_name, timeout)
-
-    def _wait_for_text(self, function, text, timeout):
-        i = 0
-        while i < timeout:
-            result = function()
-
-            if type(result) is list:
-                for item in result:
-                    if item.text == text:
-                        return
-            else:
-                if result.text == text:
-                    return
-
-            i += 1
-            sleep(1)
-
-        raise Exception(f"Timed out waiting for text '{text}'")
 
     # TODO:
     # This doesn't work, need to manually move the mouse to the middle
@@ -853,7 +796,6 @@ if __name__ == "__main__":
     # main_window = eSUB()
 
     working_url_list = unp.PROJECT_URLS
-    random.shuffle(working_url_list)
 
     # Setup main folder
     pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -870,8 +812,6 @@ if __name__ == "__main__":
         ) as fh:
             fh.write(url_to_get)
 
-    # TODO: This code will only run once, due to pool trying to pickle eSUB which uses lambdas, probably not worth
-    # re-writing this since it's a one and done. Just know it's gonna break and we have to re-run if there are items left.
     while pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*"):
         remaining_urls = pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).glob("project_url_num_*")
 
@@ -879,7 +819,9 @@ if __name__ == "__main__":
         for url_path in remaining_urls:
             working_url_list.append(f"https://app.esub.com/project/{str(url_path).split('_')[-1]}")
 
-        with Pool(cpu_count()) as p:  # On exception: see pickle issue above in TODO
-            p.map(eSUB, working_url_list)
-            # for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):  # TODO: see pickle issue above
-            #     pass
+        random.shuffle(working_url_list)
+
+        with Pool(cpu_count()) as p:
+            # p.map(eSUB, working_url_list)
+            for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):
+                pass

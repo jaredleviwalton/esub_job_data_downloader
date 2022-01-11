@@ -122,7 +122,7 @@ class eSUB:
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
             chrome_options.add_argument("log-level=3")  # ignore warnings
             chrome_options.add_argument("--new-window")
-            self.driver_session = Chrome("chromedriver", chrome_options=chrome_options)
+            self.driver_session = Chrome("chromedriver", options=chrome_options)
 
             self.MAIN_URL = self.driver_session.command_executor._url
             self.MAIN_SESSION_ID = self.driver_session.session_id
@@ -362,7 +362,7 @@ class eSUB:
             self.driver_session = None
         else:
             rmtree(self.CHROME_DOWNLOAD_FOLDER_PATH)
-            os.remove(os.path.join(self.DOWNLOAD_BASE_FOLDER, f"project_url_num_{os.path.basename(project_url)}"))
+            os.remove(os.path.join(unp.REMAINING_PATH, f"project_url_num_{os.path.basename(project_url)}"))
             self.driver_session = None
 
     def _get_files(self, menu_name, sub_job_cost_doc_item, log_info=False):

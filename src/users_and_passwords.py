@@ -33,6 +33,8 @@ PROJECTS_URL = "https://app.esub.com/project"
 
 BASE_FOLDER = None
 
+FULL_SCREEN_CHROME = False
+
 if BASE_FOLDER is None:
     BASE_FOLDER = os.path.abspath(os.getcwd())
 

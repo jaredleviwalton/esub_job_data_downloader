@@ -344,12 +344,14 @@ class eSUB:
             debug_log += f"{self.project_download_folder}"
             debug_log += "\n"
 
-            for _ in range(get_terminal_size()[0]):
-                print("=", end="")
-            print(debug_log)
-            for _ in range(get_terminal_size()[0]):
-                print("=", end="")
+            # Print stack trace
+            # for _ in range(get_terminal_size()[0]):
+            #     print("=", end="")
+            # print(debug_log)
+            # for _ in range(get_terminal_size()[0]):
+            #     print("=", end="")
 
+            # Write stack trace to file
             debug_log_path = os.path.join(
                 unp.DEBUG_PATH, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
             )
@@ -819,11 +821,18 @@ if __name__ == "__main__":
         for url_path in remaining_urls:
             working_url_list.append(f"https://app.esub.com/project/{str(url_path).split('_')[-1]}")
 
-        random.shuffle(working_url_list)
+        if len(working_url_list) > 0:
+            random.shuffle(working_url_list)
 
-        with Pool(cpu_count()) as p:
-            # p.map(eSUB, working_url_list)
-            for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):
-                pass
+            with Pool(cpu_count()) as p:
+                for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):
+                    pass
 
-        i += 1
+            i += 1
+        else:
+            break
+
+    if i == 0:
+        print(f"\WARNING:\n\t No projects were retrieved, check URL list:\n\n{unp.PROJECT_URLS}")
+    elif i > 1:
+        print(f"\nERROR:\n\t Not all projects were retrieved, check debug logs at: {unp.DEBUG_PATH}")

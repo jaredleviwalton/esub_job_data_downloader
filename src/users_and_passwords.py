@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from os import path
+import os
 
 import _secrets
 
@@ -31,11 +31,15 @@ USER_PASS = _secrets.USER_PASS
 LOGIN_URL = "https://app.esub.com/login"
 PROJECTS_URL = "https://app.esub.com/project"
 
-BASE_FOLDER = r"C:\Users\jawalking\esub_payload_rc1"
-CHROME_DOWNLOAD_FOLDER_PATH = path.join(BASE_FOLDER, "downloads")
-DOWNLOAD_BASE_FOLDER = path.join(BASE_FOLDER, "payload")
-DEBUG_PATH = path.join(BASE_FOLDER, "debug")
-REMAINING_PATH = path.join(BASE_FOLDER, "remaining")
+BASE_FOLDER = None
+
+if BASE_FOLDER is None:
+    BASE_FOLDER = os.path.abspath(os.getcwd())
+
+CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(BASE_FOLDER, "downloads")
+DOWNLOAD_BASE_FOLDER = os.path.join(BASE_FOLDER, "payload")
+DEBUG_PATH = os.path.join(BASE_FOLDER, "debug")
+REMAINING_PATH = os.path.join(BASE_FOLDER, "remaining")
 
 PROJECT_URLS = [
     "https://app.esub.com/project/1",

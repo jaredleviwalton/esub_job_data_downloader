@@ -588,8 +588,8 @@ class eSUB:
                     download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}"
                 )
 
-                    # Download attachment
-                    urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
+                # Download attachment
+                urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
 
             # Close Tab and switch context to main tab
             self.driver_session.close()

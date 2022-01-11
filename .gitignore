@@ -10,7 +10,9 @@ venv
 
 # stuff to deliver
 payload
-tmp
+downloads
+debug
+remaining
 
 # webdrivers
 bin

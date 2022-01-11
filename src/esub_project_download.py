@@ -224,7 +224,7 @@ class eSUB:
             project_name = self._get_windows_path_safe_string(project_name)
 
             # the project download folder is the url id + the project name
-            # self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
+            self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
             print(self.project_url)
             print(self.project_download_folder)
             print(
@@ -588,7 +588,6 @@ class eSUB:
                     download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}"
                 )
 
-                if os.path.exists(save_path):
                     # Download attachment
                     urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
 
@@ -784,7 +783,7 @@ def split_list(a, n):
 
 
 def download_files_single_thread():
-    e = eSUB(None, download_proj=True)
+    e = eSUB(None, download_proj=False)
     e.download_files()
 
 

@@ -120,6 +120,7 @@ class eSUB:
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # suppress dev tools loging
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
+            chrome_options.add_argument("--kiosk")
             chrome_options.add_argument("log-level=3")  # ignore warnings
             chrome_options.add_argument("--new-window")
             self.driver_session = Chrome("chromedriver", options=chrome_options)
@@ -459,7 +460,7 @@ class eSUB:
                 dropdown.click()
 
                 # get the projects files sub menu item and click on it
-                sleep(3)
+                sleep(4)
                 sub_menus = self.driver_session.find_elements(By.CSS_SELECTOR, ".es-dropdown-menu__item")
                 for item in sub_menus:
                     if sub_menu_name in item.text:

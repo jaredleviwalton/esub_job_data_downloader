@@ -24,7 +24,6 @@ SOFTWARE.
 
 import json
 from multiprocessing import Pool, cpu_count
-from multiprocessing.context import Process
 import os
 import pathlib
 import random
@@ -33,11 +32,10 @@ import timeit
 from time import sleep
 import traceback
 from typing import List, Tuple
-from shutil import Error, get_terminal_size, rmtree
+from shutil import get_terminal_size, rmtree
 from uuid import uuid1, uuid4
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
-from selenium import webdriver
 
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
@@ -45,10 +43,10 @@ from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
 import users_and_passwords as unp
+from validate_payload import validate_all
 
 
 class eSUB:
@@ -233,6 +231,7 @@ class eSUB:
             print("\n")
 
             # Load the project page
+            sleep(5)
             self.driver_session.get(project_url)
             self.project_url = project_url
 
@@ -330,31 +329,31 @@ class eSUB:
 
             # fmt: off
 
-            # Project tab
-            self._get_emails("Project", "Project Inbox", log_info=False)
-            self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=False)
-            self._get_typical_page_docs("Project", "Issues", log_info=False)
+            # # Project tab
+            # self._get_emails("Project", "Project Inbox", log_info=False)
+            # self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=False)
+            # self._get_typical_page_docs("Project", "Issues", download_files=False, log_info=False)
 
-            # Construction Docs tab
-            self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=False)
+            # # Construction Docs tab
+            # self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=False)
-            self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=False)
+            # self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Submittals", log_info=False)
-            self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=False)
-            self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=False)
+            # self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=False)
+            # self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=False)
-            self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=False)
+            # self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=False)
 
-            # Job Cost Docs tab
+            # # Job Cost Docs tab
             self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=False)
             self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=False)
-            self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=False)
-            self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=False)
-            self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=False)
+            # self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=False)
+            # self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=False)
+            # self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=False)
 
-            # Files tab
-            self._get_files("Files", "Project Files", log_info=False)
-            self._get_files("Files", "Company Files", log_info=False)
+            # # Files tab
+            # self._get_files("Files", "Project Files", log_info=False)
+            # self._get_files("Files", "Company Files", log_info=False)
 
             # fmt: on
 
@@ -722,12 +721,18 @@ class eSUB:
 
                     # move to payload folder
                     files = os.listdir(self.CHROME_DOWNLOAD_FOLDER_PATH)[0]  # only expect one file
-                    pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
-                        os.path.join(
-                            project_files_download_path,
-                            re.sub(r".\d{6,8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files), count=0, flags=0),
-                        )
+                    save_to_path = os.path.join(
+                        project_files_download_path,
+                        re.sub(r".\d{6,8}\.\d{4}\.\d{2}\.pdf", ".pdf", str(files), count=0, flags=0),
                     )
+
+                    # Possible to have file name collisions here so if already present add uuid part
+                    if os.path.exists(save_to_path):
+                        save_to_path = save_to_path[:-4] + str(uuid4()).split("-")[-1] + ".pdf"
+
+                    # Copy to payload
+                    pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(save_to_path)
+
                     break  # There is only one button that we click once, so break
 
         # if there is a next page, download that
@@ -820,6 +825,7 @@ def download_files_single_thread():
 if __name__ == "__main__":
 
     # download_files_single_thread()
+    # exit()
 
     # TODO: Setup main window and get list of projects.
     # main_window = eSUB(None, download_proj=False)
@@ -865,3 +871,5 @@ if __name__ == "__main__":
         print(f"\WARNING:\n\t No projects were retrieved, check URL list:\n\n{unp.PROJECT_URLS}")
     elif i > 1:
         print(f"\nERROR:\n\t Not all projects were retrieved, check debug logs at: {unp.DEBUG_PATH}")
+
+    validate_all()

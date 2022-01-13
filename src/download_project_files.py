@@ -28,7 +28,6 @@ import os
 import pathlib
 import random
 import re
-import timeit
 from time import sleep
 import traceback
 from typing import List, Tuple
@@ -79,8 +78,7 @@ class eSUB:
         # Used for multiprocessing
         self.CHROME_DOWNLOAD_FOLDER_PATH = os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, f"{uuid4()}")
         if os.path.exists(self.CHROME_DOWNLOAD_FOLDER_PATH):
-            print("!!!!!!!!!! UUID4 collision !!!!!!!!!!!!!!!")
-            return
+            raise Exception("!!!!!!!!!! UUID4 collision !!!!!!!!!!!!!!!")
         else:
             pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
 
@@ -169,12 +167,11 @@ class eSUB:
 
         # the project download folder is the url id + the project name
         self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-        # print(self.project_url)
-        # print(self.project_download_folder)
 
         sleep(300)
 
     # Use self.project_urls instead
+    # FIXME: Scroll down the page to force all projects to populate
     def get_project_urls(self) -> List[str]:
         self.driver_session.get(self.PROJECTS_URL)
         sleep(7)
@@ -221,84 +218,10 @@ class eSUB:
 
     def _refresh_proj_page(self):
         self.driver_session.get(self.project_url)
-        sleep(7)
-        sleep(7)
-
-    def download_files(self) -> None:
-
-        # for project_url in self.PROJECT_URLS:
-        for project_url in tqdm(self.PROJECT_URLS):
-            print("\n")
-
-            # Load the project page
-            sleep(5)
-            self.driver_session.get(project_url)
-            self.project_url = project_url
-
-            # get the url id number to help with non-unique names
-            url_id = os.path.basename(project_url)
-
-            # get the project name
-            sleep(5)
-            project_name = (
-                str(self.driver_session.find_elements(By.CLASS_NAME, "es-project-summary__title")[0].text)
-                .strip(r"business")
-                .strip(r"keybaord_arrow_down")
-                .strip("\n")
-            )
-
-            # windows path safe project name
-            project_name = self._get_windows_path_safe_string(project_name)
-
-            # the project download folder is the url id + the project name
-            self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-            print(self.project_url)
-            print(self.project_download_folder)
-            print(
-                f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
-            )
-            pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
-
-            # fmt: off
-
-            # Project tab
-            self._get_emails("Project", "Project Inbox", log_info=True)
-            self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=True)
-            self._get_typical_page_docs("Project", "Issues", log_info=True)
-
-            # Construction Docs tab
-            self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Submittals", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=True)
-            self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=True)
-
-            # Job Cost Docs tab
-            self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=True)
-            self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=True)
-            self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=True)
-            self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=True)
-            self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=True)
-
-            # Files tab
-            self._get_files("Files", "Project Files", log_info=True)
-            self._get_files("Files", "Company Files", log_info=True)
-
-            # fmt: on
-
-            for i in range(get_terminal_size()[0]):
-                print("=", end="")
-            print("\n")
+        sleep(14)
 
     def download_project(self, project_url) -> None:
         try:
-            # for project_url in self.PROJECT_URLS:
-            # for project_url in tqdm(self.PROJECT_URLS):
-            # print("\n")
-
             # Load the project page
             self.driver_session.get(project_url)
             self.project_url = project_url
@@ -320,46 +243,38 @@ class eSUB:
 
             # the project download folder is the url id + the project name
             self.project_download_folder = os.path.join(self.DOWNLOAD_BASE_FOLDER, f"{url_id} - {project_name}")
-            # print(self.project_url)
-            # print(self.project_download_folder)
-            # print(
-            #     f"\nProc-{os.path.basename(self.CHROME_DOWNLOAD_FOLDER_PATH)}: \t {self.project_url} \t -> \t {self.project_download_folder}"
-            # )
             pathlib.Path(self.project_download_folder).mkdir(parents=True, exist_ok=True)
 
             # fmt: off
 
             # # Project tab
-            # self._get_emails("Project", "Project Inbox", log_info=False)
-            # self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=False)
-            # self._get_typical_page_docs("Project", "Issues", download_files=False, log_info=False)
+            self._get_emails("Project", "Project Inbox", log_info=False)
+            self._get_typical_page_docs("Project", "Contacts", download_files=False, log_info=False)
+            self._get_typical_page_docs("Project", "Issues", download_files=False, log_info=False)
 
-            # # Construction Docs tab
-            # self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=False)
+            # Construction Docs tab
+            self._get_typical_page_docs("Construction Docs", "Field Notes", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Daily Reports", log_info=False)
-            # self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Requests For Information", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Submittals", log_info=False)
-            # self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=False)
-            # self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Meeting Minutes", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Equipment Rental", log_info=False)
             self._get_typical_page_docs("Construction Docs", "Correspondence Log", log_info=False)
-            # self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=False)
+            self._get_typical_page_docs("Construction Docs", "Drawing Sets", log_info=False)
 
-            # # Job Cost Docs tab
+            # Job Cost Docs tab
             self._get_typical_page_docs("Job Cost Docs", "Change Order Requests", log_info=False)
             self._get_typical_page_docs("Job Cost Docs", "Purchase Orders", log_info=False)
-            # self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=False)
-            # self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=False)
-            # self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontracts", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Subcontract Change Orders", log_info=False)
+            self._get_typical_page_docs("Job Cost Docs", "Pay Applications", log_info=False)
 
-            # # Files tab
-            # self._get_files("Files", "Project Files", log_info=False)
-            # self._get_files("Files", "Company Files", log_info=False)
+            # Files tab
+            self._get_files("Files", "Project Files", log_info=False)
+            self._get_files("Files", "Company Files", log_info=False)
 
             # fmt: on
 
-            # for i in range(get_terminal_size()[0]):
-            #     print("=", end="")
-            # print("\n")
         except:
             debug_log = "\n"
             debug_log += f"{self.project_url}"
@@ -370,13 +285,6 @@ class eSUB:
             debug_log += f"{self.project_url}"
             debug_log += f"{self.project_download_folder}"
             debug_log += "\n"
-
-            # Print stack trace
-            # for _ in range(get_terminal_size()[0]):
-            #     print("=", end="")
-            # print(debug_log)
-            # for _ in range(get_terminal_size()[0]):
-            #     print("=", end="")
 
             # Write stack trace to file
             debug_log_path = os.path.join(
@@ -464,7 +372,6 @@ class eSUB:
                         pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(
                             os.path.join(self.project_download_folder, tab_name, f"{sub_job_cost_doc_item}.xls")
                         )
-                        # sleep(2)
                         break
 
                 # download files
@@ -494,9 +401,6 @@ class eSUB:
                         break
 
                 sleep(5)
-                # self._wait_for(
-                #     css_selector="[onmouseover=\"window.status='Go to eSUB Inc. corporate site';return true;\"]"
-                # )
                 pathlib.Path(os.path.join(self.project_download_folder, menu_name)).mkdir(parents=True, exist_ok=True)
 
                 # get excel summary
@@ -554,8 +458,6 @@ class eSUB:
             # Wait another second
             seconds += 1
 
-        # TODO: Throw error or do something to handle timeout
-
     def _save_email(self, tab_name, sub_job_cost_doc_item):
 
         # Setup project email download path
@@ -568,8 +470,8 @@ class eSUB:
         email_numbers = self.driver_session.find_elements(By.CSS_SELECTOR, '[alt="Created from Incoming Email"]')
 
         # For some reason getting these items in reverse order causes hangs...
-        # for item, number_element in zip(items_to_download[::-1], email_numbers[::-1]):
-        for item, number_element in zip(items_to_download, email_numbers):
+        for item, number_element in zip(items_to_download[::-1], email_numbers[::-1]):
+            # for item, number_element in zip(items_to_download, email_numbers):
             email_number = number_element.find_element(By.XPATH, "../..").text
 
             item.click()
@@ -589,6 +491,7 @@ class eSUB:
             email_save_path = os.path.join(download_path, f"{email_number} - {email_name}.pdf")
 
             # Print email and move to project email folder
+            self.driver_session.set_script_timeout(300)
             if not os.path.exists(email_save_path):
                 self.driver_session.execute_script("window.print();")
                 sleep(5)
@@ -616,6 +519,11 @@ class eSUB:
                 save_path = os.path.join(
                     download_path, f"{email_number} - {email_name} - Attachment - {attachment_name}"
                 )
+
+                # Handle Duplicates
+                if os.path.exists(save_path):
+                    plp = pathlib.Path(save_path)
+                    save_path = os.path.join(plp.parent, plp.stem + "-----" + str(uuid4()).split("-")[-1] + plp.suffix)
 
                 # Download attachment
                 urlretrieve(url_quote(down_url, safe="/:?&()"), save_path)
@@ -655,7 +563,6 @@ class eSUB:
                 # But it causes a full halt to the run.
 
                 # Get body and arrow key down
-                # TODO: Use this to get all projects from main page
                 main = self.driver_session.find_element(By.CSS_SELECTOR, "body")
                 main.send_keys(Keys.DOWN)
                 main.send_keys(Keys.DOWN)
@@ -693,14 +600,6 @@ class eSUB:
                     check_box.click()
 
             sleep(0.25)
-            # # Ensure that all boxes are checked
-            # for box in self.driver_session.find_elements(By.CSS_SELECTOR, '[type="checkbox"'):
-            #     if (
-            #         box.get_attribute("name") != "DnDHours"
-            #         and box.get_attribute("name") != "checkboxLastRev"
-            #         and box.get_attribute("checked") is None
-            #     ):
-            #         raise Exception("Not all boxes checked!")
 
             # Get all the buttons but only do stuff for ones that say "Download PDF File"
             for button in self.driver_session.find_elements(By.CSS_SELECTOR, ".ui-button-text"):
@@ -728,7 +627,7 @@ class eSUB:
 
                     # Possible to have file name collisions here so if already present add uuid part
                     if os.path.exists(save_to_path):
-                        save_to_path = save_to_path[:-4] + str(uuid4()).split("-")[-1] + ".pdf"
+                        save_to_path = save_to_path[:-4] + "-----" + str(uuid4()).split("-")[-1] + ".pdf"
 
                     # Copy to payload
                     pathlib.Path(os.path.join(self.CHROME_DOWNLOAD_FOLDER_PATH, files)).replace(save_to_path)
@@ -779,7 +678,7 @@ class eSUB:
 
                 break  # probably don't need this but don't want to test it
 
-    # TODO:
+    # FIXME: scroll down a sub div
     # This doesn't work, need to manually move the mouse to the middle
     # or find a way to programatically do it. for now we just use
     # self.project_urls that we gathered semi-manually
@@ -823,9 +722,6 @@ def download_files_single_thread():
 
 
 if __name__ == "__main__":
-
-    # download_files_single_thread()
-    # exit()
 
     # TODO: Setup main window and get list of projects.
     # main_window = eSUB(None, download_proj=False)

@@ -130,8 +130,6 @@ class ValidateESUB:
             num_files_found = len(file_paths)
             if num_files_found != num_files_expected:
                 log.critical(f'"{files_folder_path}":\t{num_files_found=} != {num_files_expected=}')
-                with open(os.path.join(os.path.abspath(os.getcwd()), "rerunlist.txt"), "a") as fh:
-                    fh.write(f"{files_folder_path}\n")
 
         # Verify num expected with num present
         if not is_email:
@@ -139,20 +137,6 @@ class ValidateESUB:
             num_files_expected = len(file_nums_to_check)
             if num_files_found != num_files_expected:
                 log.critical(f'"{files_folder_path}":\t{num_files_found=} != {num_files_expected=}')
-                with open(os.path.join(os.path.abspath(os.getcwd()), "rerunlist.txt"), "a") as fh:
-                    fh.write(f"{files_folder_path}\n")
-            if num_files_found > num_files_expected:
-                print(df)
-                pass
-
-            # if num_files_found == 0:
-            #     log.fatal(f'File item not found:\tfiles_folder_path="{files_folder_path}"\t{file_num=}')
-            #     with open(os.path.join(os.path.abspath(os.getcwd()), "rerunlist.txt"), "a") as fh:
-            #         fh.write(f"{files_folder_path}\n")
-            # if num_files_found > 1:
-            #     log.warning(f'Found more files than expected:\tfiles_folder_path="{files_folder_path}"\t{file_num=}')
-            #     with open(os.path.join(os.path.abspath(os.getcwd()), "rerunlist.txt"), "a") as fh:
-            #         fh.write(f"{files_folder_path}\n")
 
     def _validate(
         self,
@@ -348,7 +332,6 @@ class ValidateProject(ValidateESUB):
 
 def validate_all():
     base_path = unp.DOWNLOAD_BASE_FOLDER
-    # base_path = r"C:\Users\jawalking\Projects\esub_job_data_downloader_carlson_glass\dev_validate"
 
     for project_folder_path in list(pathlib.Path(base_path).glob("*")):
         ValidateConstructionDocs(str(project_folder_path))

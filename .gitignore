@@ -14,8 +14,3 @@ downloads
 debug
 remaining
 validation.log
-
-# webdrivers
-bin
-geckodriver.*
-**/chromedriver*

@@ -18,7 +18,7 @@ This will scrape the website app.esub.com for the following data:
     - A folder containing all items listed in the Excel sheet (Note: This folder may be empty if no items were found). This includes attachments found in each email.
   - Issues
     - Excel sheet listing items available on eSUB
-    - A folder containing all items listed in the Excel sheet (Note: This folder may be empty if no items were found).
+    - A folder listing issues (Note: This does not have an associated folder).
 - Construction Docs
   - Field Notes
     - A folder containing all items found on the field notes page (Note: This does not have a Excel sheet).
@@ -87,10 +87,12 @@ SOFTWARE.
 
 ## Requirements
 
+- Windows OS
 - Python 3.9+  
 - pip
 - Packages in requirements.txt
 - chromedriver binary (download the one to match your installed chrome version)
+- Excel
 
 ## How to run
 
@@ -110,9 +112,6 @@ SOFTWARE.
     LOGIN_URL = "https://app.esub.com/login"
     PROJECTS_URL = "https://app.esub.com/project"
 
-    CHROME_DOWNLOAD_FOLDER_PATH = r"C:\Users\jawalking\tmp"
-    DOWNLOAD_BASE_FOLDER = r"C:\Users\jawalking\new_payload"
-
     PROJECT_URLS = [
         "https://app.esub.com/project/10115",
         "https://app.esub.com/project/1",
@@ -127,12 +126,12 @@ SOFTWARE.
         "https://app.esub.com/project/10096",
     ]
     ```
+  
+4. If on a smaller screen (like a laptop) change ```FULL_SCREEN_CHROME = False``` to ```FULL_SCREEN_CHROME = True``` in ```src\users_and_passwords.py```
 
 ### To Run
 
 1. Make sure the chromedriver is in your system path.
-    - For macOS brew install chromedriver works well
-    - For Windows I just put it in the same folder as this file the vsCode workpace seems to handle it.
 2. Make sure Python 3.9 or better is installed.
 3. Make sure pip is installed
 4. Create a virtual environment
@@ -155,5 +154,8 @@ SOFTWARE.
     python3 src\esub_project_download.py
     ```
 
-9. You will see a chrome window open up, best to make it full screen, on a second monitor is you can.
-10. After this do not interact with it, don't even scroll. JUST LET IT RUN. It will likely take along time, depending on the number of jobs. Example: for about 300 jobs it took about 70 hours.
+9. You will see multiple chrome windows open up. **DO NOT** interact with it, don't even scroll. JUST LET IT RUN. It will likely take along time, depending on the number of jobs. Example: for about 300 jobs on a 10 core system it took about 10 hours.
+
+10. After completing check ```validation.log``` and ensure that there are no entries, if there are address them.
+
+11. Also check the ```remaining``` folder, if there are any files in it, check the ```debug``` folder for info on how to address these projects that were not downloaded.

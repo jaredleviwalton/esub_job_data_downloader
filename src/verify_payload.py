@@ -7,20 +7,20 @@ from typing import List
 import pandas as pd
 import win32com.client
 
-import users_and_passwords as unp
+import config
 
 
 log.basicConfig(
     level=log.INFO,
     format="%(asctime)s - %(levelname)s: %(message)s",
     handlers=[
-        log.FileHandler(filename=os.path.join(unp.BASE_FOLDER, "validation.log"), mode="a"),
+        log.FileHandler(filename=os.path.join(config.BASE_FOLDER, "payload_verification.log"), mode="a"),
         log.StreamHandler(),
     ],
 )
 
 
-class ValidateESUB:
+class VerifyESUB:
     def convert_broken_xls_to_working_xlsx(self, xls_path: str) -> bool:
         if not os.path.exists(xls_path):
             log.warning(f"File does not exist; {xls_path=}")
@@ -138,7 +138,7 @@ class ValidateESUB:
             if num_files_found != num_files_expected:
                 log.critical(f'"{files_folder_path}":\t{num_files_found=} != {num_files_expected=}')
 
-    def _validate(
+    def _verify(
         self,
         has_files: bool,
         files_folder_path: str,
@@ -167,177 +167,177 @@ class ValidateESUB:
         return False
 
 
-class ValidateConstructionDocs(ValidateESUB):
+class VerifyConstructionDocs(VerifyESUB):
     tab_name = "Construction Docs"
 
     def __init__(self, project_folder_path) -> None:
         self.project_folder_path = project_folder_path
 
-        self.validate_correspondence_log()
-        self.validate_daily_reports()
-        self.validate_drawing_sets()
-        self.validate_equipment_rental()
-        self.validate_meeting_minutes()
-        self.validate_requests_for_information()
-        self.validate_submittals()
+        self.verify_correspondence_log()
+        self.verify_daily_reports()
+        self.verify_drawing_sets()
+        self.verify_equipment_rental()
+        self.verify_meeting_minutes()
+        self.verify_requests_for_information()
+        self.verify_submittals()
 
-    def validate_correspondence_log(self):
+    def verify_correspondence_log(self):
         sub_tab_name = "Correspondence Log"
         has_files = True
         start_listening_text = "Number"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_daily_reports(self):
+    def verify_daily_reports(self):
         sub_tab_name = "Daily Reports"
         has_files = True
         start_listening_text = "DR No"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_drawing_sets(self):
+    def verify_drawing_sets(self):
         sub_tab_name = "Drawing Sets"
         has_files = True
         start_listening_text = "Drawing Set Prefix"
         text_column_num = 1
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text, text_column_num)
+        return self._verify(has_files, files_folder_path, start_listening_text, text_column_num)
 
-    def validate_equipment_rental(self):
+    def verify_equipment_rental(self):
         sub_tab_name = "Equipment Rental"
         has_files = True
         start_listening_text = "No"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_meeting_minutes(self):
+    def verify_meeting_minutes(self):
         sub_tab_name = "Meeting Minutes"
         has_files = True
         start_listening_text = "No"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_requests_for_information(self):
+    def verify_requests_for_information(self):
         sub_tab_name = "Requests For Information"
         has_files = True
         start_listening_text = "RFI Number"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_submittals(self):
+    def verify_submittals(self):
         sub_tab_name = "Submittals"
         has_files = True
         start_listening_text = "Sub No"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
 
-class ValidateJobCostDocs(ValidateESUB):
+class VerifyJobCostDocs(VerifyESUB):
     tab_name = "Job Cost Docs"
 
     def __init__(self, project_folder_path) -> None:
         self.project_folder_path = project_folder_path
 
-        self.validate_change_order_requests()
-        self.validate_pay_applications()
-        self.validate_purchase_orders()
-        self.validate_subcontract_change_orders()
-        self.validate_subcontracts()
+        self.verify_change_order_requests()
+        self.verify_pay_applications()
+        self.verify_purchase_orders()
+        self.verify_subcontract_change_orders()
+        self.verify_subcontracts()
 
-    def validate_change_order_requests(self):
+    def verify_change_order_requests(self):
         sub_tab_name = "Change Order Requests"
         has_files = True
         start_listening_text = "Original Contract Amounts"
         skip_text = ["Subtotal", "Grand Total"]
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
+        return self._verify(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
 
-    def validate_pay_applications(self):
+    def verify_pay_applications(self):
         sub_tab_name = "Pay Applications"
         has_files = True
         start_listening_text = "Number"
         skip_text = ["Contract Sum to Date"]
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
+        return self._verify(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
 
-    def validate_purchase_orders(self):
+    def verify_purchase_orders(self):
         sub_tab_name = "Purchase Orders"
         has_files = True
         start_listening_text = "Number"
         skip_text = ["Grand Total"]
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
+        return self._verify(has_files, files_folder_path, start_listening_text, skip_text=skip_text)
 
-    def validate_subcontract_change_orders(self):
+    def verify_subcontract_change_orders(self):
         sub_tab_name = "Subcontract Change Orders"
         has_files = True
         start_listening_text = "Number"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_subcontracts(self):
+    def verify_subcontracts(self):
         sub_tab_name = "Subcontracts"
         has_files = True
         start_listening_text = "Number"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
 
-class ValidateProject(ValidateESUB):
+class VerifyProject(VerifyESUB):
     tab_name = "Project"
 
     def __init__(self, project_folder_path) -> None:
         self.project_folder_path = project_folder_path
 
-        self.validate_emails()
-        self.validate_contacts()
-        self.validate_issues()
+        self.verify_emails()
+        self.verify_contacts()
+        self.verify_issues()
 
-    def validate_emails(self):
+    def verify_emails(self):
         sub_tab_name = "Project Inbox"
         has_files = True
         start_listening_text = "Number"
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text, is_email=True)
+        return self._verify(has_files, files_folder_path, start_listening_text, is_email=True)
 
-    def validate_contacts(self):
+    def verify_contacts(self):
         sub_tab_name = "Contacts"
         has_files = True
         start_listening_text = ""
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
-    def validate_issues(self):
+    def verify_issues(self):
         sub_tab_name = "Issues"
         has_files = True
         start_listening_text = ""
         files_folder_path = os.path.join(self.project_folder_path, self.tab_name, sub_tab_name)
 
-        return self._validate(has_files, files_folder_path, start_listening_text)
+        return self._verify(has_files, files_folder_path, start_listening_text)
 
 
-def validate_all():
-    base_path = unp.DOWNLOAD_BASE_FOLDER
+def verify_payload():
+    base_path = config.DOWNLOAD_BASE_FOLDER
 
     for project_folder_path in list(pathlib.Path(base_path).glob("*")):
-        ValidateConstructionDocs(str(project_folder_path))
-        ValidateJobCostDocs(str(project_folder_path))
-        ValidateProject(str(project_folder_path))
+        VerifyConstructionDocs(str(project_folder_path))
+        VerifyJobCostDocs(str(project_folder_path))
+        VerifyProject(str(project_folder_path))
 
 
 if __name__ == "__main__":
-    validate_all()
+    verify_payload()

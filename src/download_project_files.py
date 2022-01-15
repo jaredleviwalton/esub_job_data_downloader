@@ -23,18 +23,18 @@ SOFTWARE.
 """
 
 import json
-from multiprocessing import Pool, cpu_count
 import os
 import pathlib
 import random
 import re
-from time import sleep
 import traceback
+from multiprocessing import Pool, cpu_count
+from shutil import rmtree
+from time import sleep
 from typing import List, Tuple
-from shutil import get_terminal_size, rmtree
-from uuid import uuid1, uuid4
 from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
+from uuid import uuid1, uuid4
 
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
@@ -44,23 +44,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from tqdm import tqdm
 
-import users_and_passwords as unp
-
-from validate_payload import validate_all
+import config
+from verify_payload import verify_payload
 
 
 class eSUB:
-    PROJECT_URLS = unp.PROJECT_URLS
+    CHROME_DOWNLOAD_FOLDER_PATH = config.CHROME_DOWNLOAD_FOLDER_PATH
 
-    LOGIN_URL = unp.LOGIN_URL
-    PROJECTS_URL = unp.PROJECTS_URL
-
-    CHROME_DOWNLOAD_FOLDER_PATH = unp.CHROME_DOWNLOAD_FOLDER_PATH
-
-    DOWNLOAD_BASE_FOLDER = unp.DOWNLOAD_BASE_FOLDER
+    DOWNLOAD_BASE_FOLDER = config.DOWNLOAD_BASE_FOLDER
 
     # existing driver session for debugging and when it breaks
-    # update as neededs
+    # update as needed for debug purposes
     EXISTING_SESSION_URL = "http://localhost:55185"
     EXISTING_SESSION_ID = "a43ba8c76f344a3f064797247aa41ae4"
 
@@ -117,7 +111,7 @@ class eSUB:
             chrome_options.add_experimental_option("prefs", prefs)
             chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # suppress dev tools loging
             chrome_options.add_argument("--kiosk-printing")  # for pdf printing
-            if unp.FULL_SCREEN_CHROME:
+            if config.FULL_SCREEN_CHROME:
                 chrome_options.add_argument("--kiosk")
             chrome_options.add_argument("log-level=3")  # ignore warnings
             chrome_options.add_argument("--new-window")
@@ -135,12 +129,12 @@ class eSUB:
             self.download_project(project_url)
 
     def _login(self) -> None:
-        self.driver_session.get(self.LOGIN_URL)
+        self.driver_session.get(config.LOGIN_URL)
 
         sleep(7)
 
-        self.driver_session.find_element(By.ID, "txtUsername").send_keys(unp.USER_NAME)
-        self.driver_session.find_element(By.ID, "txtPassword").send_keys(unp.USER_PASS)
+        self.driver_session.find_element(By.ID, "txtUsername").send_keys(config.USER_NAME)
+        self.driver_session.find_element(By.ID, "txtPassword").send_keys(config.USER_PASS)
 
         self.driver_session.find_element(By.ID, "btnLogin").click()
 
@@ -173,28 +167,31 @@ class eSUB:
 
     # Scroll down the page to force all projects to populate
     def get_project_urls(self) -> List[str]:
-        self.driver_session.get(self.PROJECTS_URL)
+        self.driver_session.get(config.PROJECTS_URL)
 
         sleep(7)
 
+        project_urls = []
         last_element = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
         while True:
-            last_project_card_in_list = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
+            project_elements = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
+            last_project_card_in_list = project_elements[-1]
             last_project_card_in_list.send_keys(Keys.PAGE_DOWN)
-            sleep(3)
+            sleep(7)
             last_project_card_in_list = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
             if last_element == last_project_card_in_list:
                 break
             last_element = last_project_card_in_list
 
+            for project in project_elements:
+                project_urls.append(project.get_attribute("href"))
+
         project_elements = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
-        project_urls = []
-        project_names = []
+
         for project in project_elements:
             project_urls.append(project.get_attribute("href"))
-            project_names.append(project.text.split("\n")[1].strip())
 
-        return project_urls, project_names
+        return [*{*project_urls}]  # Return list with duplicates removed
 
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\?]', "", string)
@@ -271,7 +268,7 @@ class eSUB:
 
             # Write stack trace to file
             debug_log_path = os.path.join(
-                unp.DEBUG_PATH, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
+                config.DEBUG_PATH, f"DEBUG_project_url_num_{os.path.basename(project_url)}_{uuid1()}.txt"
             )
             with open(debug_log_path, "w") as fh:
                 fh.write(debug_log)
@@ -282,7 +279,7 @@ class eSUB:
             self.driver_session = None
         else:
             rmtree(self.CHROME_DOWNLOAD_FOLDER_PATH)
-            os.remove(os.path.join(unp.REMAINING_PATH, f"project_url_num_{os.path.basename(project_url)}"))
+            os.remove(os.path.join(config.REMAINING_PATH, f"project_url_num_{os.path.basename(project_url)}"))
             self.driver_session = None
 
     def _get_files(self, menu_name, sub_job_cost_doc_item, log_info=False):
@@ -677,32 +674,31 @@ if __name__ == "__main__":
 
     # Setup main window and get list of projects.
     main_window = eSUB(None, download_proj=False)
-    project_urls, project_names = main_window.get_project_urls()
+    project_urls = main_window.get_project_urls()
     del main_window
 
-    with open(os.path.join(unp.BASE_FOLDER, "project_urls.txt"), "w") as wfh:
-        wfh.writelines(project_urls)
-    with open(os.path.join(unp.BASE_FOLDER, "project_names"), "w") as wfh:
-        wfh.writelines(project_names)
+    with open(os.path.join(config.BASE_FOLDER, "project_urls"), "w") as wfh:
+        for i in project_urls:
+            wfh.write(f"{i}\n")
 
     # Setup main folder
-    pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(unp.REMAINING_PATH).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(unp.DEBUG_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(config.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(config.REMAINING_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(config.DEBUG_PATH).mkdir(parents=True, exist_ok=True)
 
     # See what still needs to be gotten if we are picking back up from a previous run
-    remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
+    remaining_urls = pathlib.Path(config.REMAINING_PATH).glob("project_url_num_*")
     if len(list(remaining_urls)) > 0:
         project_urls = remaining_urls
 
     # Create file for each url with name being f"project_url_num_{url_number}"
     for url_to_get in project_urls:
-        with open(os.path.join(unp.REMAINING_PATH, f"project_url_num_{os.path.basename(url_to_get)}"), "a") as fh:
+        with open(os.path.join(config.REMAINING_PATH, f"project_url_num_{os.path.basename(url_to_get)}"), "a") as fh:
             fh.write(url_to_get)
 
     i = 0
-    while pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*") and i < 10:
-        remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
+    while pathlib.Path(config.REMAINING_PATH).glob("project_url_num_*") and i < 10:
+        remaining_urls = pathlib.Path(config.REMAINING_PATH).glob("project_url_num_*")
 
         project_urls = []
         for url_path in remaining_urls:
@@ -722,6 +718,6 @@ if __name__ == "__main__":
     if i == 0:
         print(f"\ERROR:\n\t No projects were retrieved...")
     elif i > 1:
-        print(f"\nERROR:\n\t Not all projects were retrieved, check debug logs at: {unp.DEBUG_PATH}")
+        print(f"\nERROR:\n\t Not all projects were retrieved, check debug logs at: {config.DEBUG_PATH}")
 
-    validate_all()
+    verify_payload()

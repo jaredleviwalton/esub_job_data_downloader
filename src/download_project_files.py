@@ -45,6 +45,7 @@ from selenium.webdriver.common.keys import Keys
 from tqdm import tqdm
 
 import users_and_passwords as unp
+
 from validate_payload import validate_all
 
 
@@ -170,48 +171,30 @@ class eSUB:
 
         sleep(300)
 
-    # Use self.project_urls instead
-    # FIXME: Scroll down the page to force all projects to populate
+    # Scroll down the page to force all projects to populate
     def get_project_urls(self) -> List[str]:
         self.driver_session.get(self.PROJECTS_URL)
+
         sleep(7)
 
-        # scroll down the page to force all projects to populate
-        # TODO: this has problems, need to manually scroll or move mouse to middle
-        # self._scroll_down_page()
-
-        # action = ActionChains(self.driver_session)
-
-        # for _ in range(6):
-        #     project_elements = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
-        #     action.move_to_element(project_elements[-1])
-        #     action.perform()
-        #     location = project_elements[-1].location
-        #     sleep(1)
-
-        i = 1
-        screen_height = self.driver_session.execute_script("return window.screen.height;")
+        last_element = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
         while True:
-            current_element = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
-            # scroll one screen height each time
-            self.driver_session.execute_script(
-                "{element}.scrollTo(0, {screen_height}*{i});".format(
-                    element=current_element, screen_height=screen_height, i=i
-                )
-            )
-            i += 1
-            sleep(5)
-            # update scroll height each time after scrolled, as the scroll height can change after we scrolled the page
-            scroll_height = self.driver_session.execute_script("return document.body.scrollHeight;")
-            # Break the loop when the height we need to scroll to is larger than the total scroll height
-            if (screen_height) * i > scroll_height:
+            last_project_card_in_list = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
+            last_project_card_in_list.send_keys(Keys.PAGE_DOWN)
+            sleep(3)
+            last_project_card_in_list = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")[-1]
+            if last_element == last_project_card_in_list:
                 break
+            last_element = last_project_card_in_list
 
+        project_elements = self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card")
         project_urls = []
-        for project in self.driver_session.find_elements(By.CSS_SELECTOR, ".project-card"):
+        project_names = []
+        for project in project_elements:
             project_urls.append(project.get_attribute("href"))
+            project_names.append(project.text.split("\n")[1].strip())
 
-        return project_urls
+        return project_urls, project_names
 
     def _get_windows_path_safe_string(self, string) -> str:
         return re.sub(r'[\\/\:*"<>\|\?]', "", string)
@@ -678,37 +661,6 @@ class eSUB:
 
                 break  # probably don't need this but don't want to test it
 
-    # FIXME: scroll down a sub div
-    # This doesn't work, need to manually move the mouse to the middle
-    # or find a way to programatically do it. for now we just use
-    # self.project_urls that we gathered semi-manually
-    def _scroll_down_page(self, speed=8):
-
-        # Try #1
-        total_height = int(self.driver_session.execute_script("return document.body.scrollHeight"))
-        for i in range(1, total_height, 5):
-            self.driver_session.execute_script(f"window.scrollTo(0, {i});")
-
-        # Try #2
-        y = 1000
-        for timer in range(0, 50):
-            self.driver_session.execute_script("window.scrollTo(0, " + str(y) + ")")
-            y += 1000
-            sleep(1)
-
-        # Try #3
-        current_scroll_position, new_height = 0, 1
-        while current_scroll_position <= new_height:
-            current_scroll_position += speed
-            self.driver_session.execute_script("window.scrollTo(0, {});".format(current_scroll_position))
-            new_height = self.driver_session.execute_script("return document.body.scrollHeight")
-
-        # Try #4
-        scroll_window_location = self.driver_session.find_element(By.CSS_SELECTOR, ".infinite-scroll-container")
-        action = ActionChains(self.driver_session)
-        action.move_to_element_with_offset(scroll_window_location, 5, 5)
-        action.perform()
-
 
 def split_list(a, n):
     n = min(n, len(a))
@@ -723,11 +675,15 @@ def download_files_single_thread():
 
 if __name__ == "__main__":
 
-    # TODO: Setup main window and get list of projects.
-    # main_window = eSUB(None, download_proj=False)
-    # project_urls = main_window.get_project_urls()
+    # Setup main window and get list of projects.
+    main_window = eSUB(None, download_proj=False)
+    project_urls, project_names = main_window.get_project_urls()
+    del main_window
 
-    working_url_list = unp.PROJECT_URLS
+    with open(os.path.join(unp.BASE_FOLDER, "project_urls.txt"), "w") as wfh:
+        wfh.writelines(project_urls)
+    with open(os.path.join(unp.BASE_FOLDER, "project_names"), "w") as wfh:
+        wfh.writelines(project_names)
 
     # Setup main folder
     pathlib.Path(unp.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -737,10 +693,10 @@ if __name__ == "__main__":
     # See what still needs to be gotten if we are picking back up from a previous run
     remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
     if len(list(remaining_urls)) > 0:
-        working_url_list = remaining_urls
+        project_urls = remaining_urls
 
     # Create file for each url with name being f"project_url_num_{url_number}"
-    for url_to_get in working_url_list:
+    for url_to_get in project_urls:
         with open(os.path.join(unp.REMAINING_PATH, f"project_url_num_{os.path.basename(url_to_get)}"), "a") as fh:
             fh.write(url_to_get)
 
@@ -748,15 +704,15 @@ if __name__ == "__main__":
     while pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*") and i < 10:
         remaining_urls = pathlib.Path(unp.REMAINING_PATH).glob("project_url_num_*")
 
-        working_url_list = []
+        project_urls = []
         for url_path in remaining_urls:
-            working_url_list.append(f"https://app.esub.com/project/{str(url_path).split('_')[-1]}")
+            project_urls.append(f"https://app.esub.com/project/{str(url_path).split('_')[-1]}")
 
-        if len(working_url_list) > 0:
-            random.shuffle(working_url_list)
+        if len(project_urls) > 0:
+            random.shuffle(project_urls)
 
             with Pool(cpu_count()) as p:
-                for _ in tqdm(p.imap_unordered(eSUB, working_url_list), total=len(working_url_list)):
+                for _ in tqdm(p.imap_unordered(eSUB, project_urls), total=len(project_urls)):
                     pass
 
             i += 1
@@ -764,7 +720,7 @@ if __name__ == "__main__":
             break
 
     if i == 0:
-        print(f"\WARNING:\n\t No projects were retrieved, check URL list:\n\n{unp.PROJECT_URLS}")
+        print(f"\ERROR:\n\t No projects were retrieved...")
     elif i > 1:
         print(f"\nERROR:\n\t Not all projects were retrieved, check debug logs at: {unp.DEBUG_PATH}")
 

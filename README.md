@@ -1,16 +1,114 @@
 # Construction job data scraper for eSUB website
 
+A project data scraper for apps.eSUB.com
+
+---
+
+## Table of Contents
+
 - [Construction job data scraper for eSUB website](#construction-job-data-scraper-for-esub-website)
-  - [Basic Info](#basic-info)
+  - [Table of Contents](#table-of-contents)
   - [Copyright](#copyright)
   - [Requirements](#requirements)
   - [How to run](#how-to-run)
-    - [Username and Password](#username-and-password)
+    - [Config, Username and Password](#config-username-and-password)
     - [To Run](#to-run)
+  - [Payload Info](#payload-info)
 
-## Basic Info
+## Copyright
 
-This will scrape the website app.esub.com for the following data:
+MIT License
+
+Copyright (c) 2022 Jared Walton <[jared.levi.walton@gmail.com](jared.levi.walton@gmail.com)>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Requirements
+
+- Windows OS
+- Python 3.9+  
+- pip
+- Packages in requirements.txt
+- chromedriver binary (download the one to match your installed chrome version)
+- Excel
+
+## How to run
+
+### Config, Username and Password
+
+1. Create a file: ```src\_secrets.py```
+2. In it add the following, substituting the correct username and password.
+
+    ```python
+    USER_NAME = "SomeName@somedomain.com"
+    USER_PASS = "monkey123_password!"
+    ```
+
+3. If on a smaller screen (like a laptop) in the file ```src\users_and_passwords.py``` change the following
+
+    ```python
+    FULL_SCREEN_CHROME = False
+    ```
+
+    to
+
+    ```python
+    FULL_SCREEN_CHROME = True
+    ```
+
+### To Run
+
+0. Clone the git repo to a non-cloud syncing folder. This may download thousands of files amounting to tens of gigabytes, and will overload OneDrive and cause data corruption.
+1. Make sure chrome is installed.
+2. Make sure  chromedriver (matching the version of chrome you have instaslled) is in your system path. If you are using vsCode and opend the '.code-workspace' simply downloading and placing 'chromedriver.exe' in the same folder as the workspace file should work.
+3. Make sure Python 3.9 or better is installed.
+4. Make sure pip is installed
+5. Make sure excel is installed and activated
+6. Create a virtual environment
+
+    ```shell
+    python3 -m venv .venv
+    ```
+
+7. Install dependencies
+
+    ```shell
+    pip install -r requirements.txt
+    ```
+
+8. Set your computer power settings such that it will never sleep, lock or turn the monitor off.
+9. If using vsCode (and I recommend you do) press F5 or start debugging the file located at: src\esub_project_download.py
+10. Otherwise run the following command
+
+    ```shell
+    python3 src\esub_project_download.py
+    ```
+
+11. You will see multiple chrome windows open up. **DO NOT** interact with it, don't even scroll. JUST LET IT RUN. It will likely take along time, depending on the number of jobs. Example: for about 300 jobs on a 10 core system it took about 10 hours.
+
+12. After completing, check the ```payload_verification.log``` and ensure that there are no entries, if there are address them.
+
+13. Also check the ```remaining``` folder, if there are any files in it, check the ```debug``` folder for info on how to address the projects that were not downloaded.
+
+## Payload Info
+
+This will scrape the website app.esub.com for the following data and place it into the ```payload``` folder:
 
 - Project
   - Project Inbox
@@ -61,101 +159,3 @@ This will scrape the website app.esub.com for the following data:
   - Company Files
     - A folder containing all items found on the field notes page (Note: This does not have a Excel sheet).
 
-## Copyright
-
-MIT License
-
-Copyright (c) 2022 Jared Walton <[jared.levi.walton@gmail.com](jared.levi.walton@gmail.com)>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-## Requirements
-
-- Windows OS
-- Python 3.9+  
-- pip
-- Packages in requirements.txt
-- chromedriver binary (download the one to match your installed chrome version)
-- Excel
-
-## How to run
-
-### Username and Password
-
-1. Create a file: ```src\_secrets.py```
-2. In it add the following, substituting the correct username and password.
-
-    ```python
-    USER_NAME = "SomeName@somedomain.com"
-    USER_PASS = "monkey123_password!"
-    ```
-
-3. Update the following lines in ```src\users_and_passwords.py``` with your info.
-
-    ```python
-    LOGIN_URL = "https://app.esub.com/login"
-    PROJECTS_URL = "https://app.esub.com/project"
-
-    PROJECT_URLS = [
-        "https://app.esub.com/project/10115",
-        "https://app.esub.com/project/1",
-        "https://app.esub.com/project/10257",
-        "https://app.esub.com/project/10100",
-        "https://app.esub.com/project/10103",
-        "https://app.esub.com/project/10133",
-        "https://app.esub.com/project/10104",
-        "https://app.esub.com/project/10215",
-        "https://app.esub.com/project/10072",
-        ...
-        "https://app.esub.com/project/10096",
-    ]
-    ```
-  
-4. If on a smaller screen (like a laptop) change ```FULL_SCREEN_CHROME = False``` to ```FULL_SCREEN_CHROME = True``` in ```src\users_and_passwords.py```
-
-### To Run
-
-1. Make sure the chromedriver is in your system path.
-2. Make sure Python 3.9 or better is installed.
-3. Make sure pip is installed
-4. Create a virtual environment
-
-    ```shell
-    python3 -m venv .venv
-    ```
-
-5. Install dependencies
-
-    ```shell
-    pip install -r requirements.txt
-    ```
-
-6. Set your computer power settings such that it will never sleep, lock or turn the monitor off.
-7. If using vsCode (and I recommend you do) press F5 or start debugging the file located at: src\esub_project_download.py
-8. Otherwise run the following command
-
-    ```shell
-    python3 src\esub_project_download.py
-    ```
-
-9. You will see multiple chrome windows open up. **DO NOT** interact with it, don't even scroll. JUST LET IT RUN. It will likely take along time, depending on the number of jobs. Example: for about 300 jobs on a 10 core system it took about 10 hours.
-
-10. After completing check ```validation.log``` and ensure that there are no entries, if there are address them.
-
-11. Also check the ```remaining``` folder, if there are any files in it, check the ```debug``` folder for info on how to address these projects that were not downloaded.

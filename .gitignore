@@ -8,6 +8,9 @@ src/_secrets.py
 .venv
 venv
 
+# bin
+chromedriver*
+
 # stuff to deliver
 payload
 downloads

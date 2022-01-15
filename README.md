@@ -10,10 +10,13 @@ A project data scraper for apps.eSUB.com
   - [Table of Contents](#table-of-contents)
   - [Copyright](#copyright)
   - [Requirements](#requirements)
+  - [Recomended](#recomended)
   - [How to run](#how-to-run)
     - [Config, Username and Password](#config-username-and-password)
     - [To Run](#to-run)
   - [Payload Info](#payload-info)
+    - [File Structure and Naming](#file-structure-and-naming)
+    - [Project Items Gathered](#project-items-gathered)
 
 ## Copyright
 
@@ -41,12 +44,17 @@ SOFTWARE.
 
 ## Requirements
 
-- Windows OS
-- Python 3.9+  
-- pip
-- Packages in requirements.txt
-- chromedriver binary (download the one to match your installed chrome version)
-- Excel
+- [Windows OS](https://www.microsoft.com/software-download/windows11)
+- [Python 3.9+](https://www.python.org/downloads/)
+- [pip](https://pypi.org/project/pip/)
+- [Packages in requirements.txt](requirements.txt)
+- [Chrome web browser](https://www.google.com/chrome/)
+- [chromedriver binary](https://chromedriver.chromium.org/downloads) (download the one to match your installed chrome version)
+- [Excel](https://www.microsoft.com/en-us/microsoft-365/excel)
+
+## Recomended
+
+- [Microsoft Visual Studio Code](https://code.visualstudio.com/)
 
 ## How to run
 
@@ -60,7 +68,7 @@ SOFTWARE.
     USER_PASS = "monkey123_password!"
     ```
 
-3. If on a smaller screen (like a laptop) in the file ```src\users_and_passwords.py``` change the following
+3. If on a smaller screen (like a laptop) in the file ```src\config.py``` change the following
 
     ```python
     FULL_SCREEN_CHROME = False
@@ -72,43 +80,71 @@ SOFTWARE.
     FULL_SCREEN_CHROME = True
     ```
 
+4. By default it will utilize all cores on your system, an 8-core system will result in 8 chrome windows each pulling data from a different project. This can be CPU and network intensive. If you wish to only allocate one or a few cores, modify the following line in ```src\config.py```, by replacing 'None' with '1' or whatever number of cores you wish.
+
+    ```python
+    NUM_CONCURRENT_SESSIONS = None
+    ```
+
 ### To Run
 
-0. Clone the git repo to a non-cloud syncing folder. This may download thousands of files amounting to tens of gigabytes, and will overload OneDrive and cause data corruption.
-1. Make sure chrome is installed.
-2. Make sure  chromedriver (matching the version of chrome you have instaslled) is in your system path. If you are using vsCode and opend the '.code-workspace' simply downloading and placing 'chromedriver.exe' in the same folder as the workspace file should work.
-3. Make sure Python 3.9 or better is installed.
-4. Make sure pip is installed
-5. Make sure excel is installed and activated
-6. Create a virtual environment
+1. Clone the git repo to a non-cloud syncing folder. This may download thousands of files amounting to tens of gigabytes, and will overload OneDrive and may cause data corruption.
+2. Make sure chrome is installed.
+3. Make sure  chromedriver (matching the version of chrome you have instaslled) is in your system path. If you are using vsCode and opend the '.code-workspace' simply downloading and placing 'chromedriver.exe' in the same folder as the workspace file should work.
+4. Make sure Python 3.9 or better is installed.
+5. Make sure pip is installed
+6. Make sure excel is installed and activated
+7. Create a virtual environment
 
     ```shell
     python3 -m venv .venv
     ```
 
-7. Install dependencies
+8. Ensure that you are in the virtual environment. You may need to [set the execution policy for powershell](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.2). Run the following command, then close and re-open the shell session.
+
+    ```powershell
+    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+    ```
+
+9. Install dependencies
 
     ```shell
     pip install -r requirements.txt
     ```
 
-8. Set your computer power settings such that it will never sleep, lock or turn the monitor off.
-9. If using vsCode (and I recommend you do) press F5 or start debugging the file located at: src\esub_project_download.py
-10. Otherwise run the following command
+10. Set your computer power settings such that it will never sleep, lock or turn the monitor off.
+11. If using vsCode (and I recommend you do) press F5 to run the file ```src\download_project_files.py```
+12. Otherwise run the following command
 
     ```shell
-    python3 src\esub_project_download.py
+    python3 src\download_project_files.py
     ```
 
-11. You will see multiple chrome windows open up. **DO NOT** interact with it, don't even scroll. JUST LET IT RUN. It will likely take along time, depending on the number of jobs. Example: for about 300 jobs on a 10 core system it took about 10 hours.
+13. You will see one or more chrome windows open up. **DO NOT** interact with it, don't even scroll. JUST LET IT RUN. It could take along time depending on the number of jobs and number of job files. Example: for about 300 jobs on a 10 core system it took about 10 hours.
 
-12. After completing, check the ```payload_verification.log``` and ensure that there are no entries, if there are address them.
+14. After completing, check the ```payload_verification.log``` and ensure that there are no entries, if there are, address them.
 
-13. Also check the ```remaining``` folder, if there are any files in it, check the ```debug``` folder for info on how to address the projects that were not downloaded.
+15. Also check the ```remaining``` folder, if there are any files in it, check the ```debug``` folder for info on how to address the projects that were not downloaded.
 
 ## Payload Info
 
-This will scrape the website app.esub.com for the following data and place it into the ```payload``` folder:
+Data pulled from the will be placed into the ```payload``` folder, with each folder representing a project
+
+### File Structure and Naming
+
+- Job folder naming:
+  - Example: ‘10115 - 198-1 - Soboba Casino & Hotel’ where ‘10115’ is the job ID from the URL: [https://app.esub.com/project/**10115**](https://app.esub.com/project/10115) and the rest is the job number and name from the eSUB summary page
+
+- Each job folder follows the tab structure as is listed above and from the site
+- Emails:
+  - Each email name has the following structure:
+    - Example: '10256 - Re [EXT] SOBOBA CASINO & HOTEL project PO No 198-1-1' where '10256' is the email Number listed in the excel sheet and also on the jobs Project Inbox page the rest is the email subject.  
+    - Attachments from an email bear the same name and number as their parent email, but also include ' – Attachment – ' followed by the attachments name.
+      - Example: '10256 - Re [EXT] SOBOBA CASINO & HOTEL project PO No 198-1-1 - Attachment - P.198-1-1.1242018.1502.pdf'
+- If a file with the same name is downloaded, the subsequent ones will be appended with five "-" followed by twelve unique characters.
+  - Example: 'S.018-65-1-----f8253b1aa2c7.pdf'
+
+### Project Items Gathered
 
 - Project
   - Project Inbox
@@ -158,4 +194,3 @@ This will scrape the website app.esub.com for the following data and place it in
     - A folder containing all items found on the field notes page (Note: This does not have a Excel sheet).
   - Company Files
     - A folder containing all items found on the field notes page (Note: This does not have a Excel sheet).
-

@@ -696,6 +696,11 @@ if __name__ == "__main__":
         with open(os.path.join(config.REMAINING_PATH, f"project_url_num_{os.path.basename(url_to_get)}"), "a") as fh:
             fh.write(url_to_get)
 
+    if config.NUM_CONCURRENT_SESSIONS is None:
+        num_concurrent_sessions = cpu_count()
+    else:
+        num_concurrent_sessions = config.NUM_CONCURRENT_SESSIONS
+
     i = 0
     while pathlib.Path(config.REMAINING_PATH).glob("project_url_num_*") and i < 10:
         remaining_urls = pathlib.Path(config.REMAINING_PATH).glob("project_url_num_*")
@@ -706,8 +711,7 @@ if __name__ == "__main__":
 
         if len(project_urls) > 0:
             random.shuffle(project_urls)
-
-            with Pool(cpu_count()) as p:
+            with Pool(num_concurrent_sessions) as p:
                 for _ in tqdm(p.imap_unordered(eSUB, project_urls), total=len(project_urls)):
                     pass
 

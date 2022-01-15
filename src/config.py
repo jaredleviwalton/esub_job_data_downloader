@@ -28,6 +28,7 @@ import _secrets
 
 BASE_FOLDER = None
 FULL_SCREEN_CHROME = False
+NUM_CONCURRENT_SESSIONS = None
 
 USER_NAME = _secrets.USER_NAME
 USER_PASS = _secrets.USER_PASS

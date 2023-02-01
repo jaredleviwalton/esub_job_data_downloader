@@ -133,14 +133,14 @@ Data pulled from the will be placed into the ```payload``` folder, with each fol
 ### File Structure and Naming
 
 - Job folder naming:
-  - Example: ‘10115 - 198-1 - Soboba Casino & Hotel’ where ‘10115’ is the job ID from the URL: [https://app.esub.com/project/**10115**](https://app.esub.com/project/10115) and the rest is the job number and name from the eSUB summary page
+  - Example: ‘10115 - 198-1 - Some Project Name’ where ‘10115’ is the job ID from the URL: [https://app.esub.com/project/**10115**](https://app.esub.com/project/10115) and the rest is the job number and name from the eSUB summary page
 
 - Each job folder follows the tab structure as is listed above and from the site
 - Emails:
   - Each email name has the following structure:
-    - Example: '10256 - Re [EXT] SOBOBA CASINO & HOTEL project PO No 198-1-1' where '10256' is the email Number listed in the excel sheet and also on the jobs Project Inbox page the rest is the email subject.  
+    - Example: '10256 - Re [EXT] Some Project Name project PO No 198-1-1' where '10256' is the email Number listed in the excel sheet and also on the jobs Project Inbox page the rest is the email subject.  
     - Attachments from an email bear the same name and number as their parent email, but also include ' – Attachment – ' followed by the attachments name.
-      - Example: '10256 - Re [EXT] SOBOBA CASINO & HOTEL project PO No 198-1-1 - Attachment - P.198-1-1.1242018.1502.pdf'
+      - Example: '10256 - Re [EXT] Some Project Name project PO No 198-1-1 - Attachment - P.198-1-1.1242018.1502.pdf'
 - If a file with the same name is downloaded, the subsequent ones will be appended with five "-" followed by twelve unique characters.
   - Example: 'S.018-65-1-----f8253b1aa2c7.pdf'
 

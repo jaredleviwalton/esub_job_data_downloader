@@ -9,7 +9,6 @@ import win32com.client
 
 import config
 
-
 log.basicConfig(
     level=log.INFO,
     format="%(asctime)s - %(levelname)s: %(message)s",
@@ -147,7 +146,6 @@ class VerifyESUB:
         skip_text: List[str] = [],
         is_email: bool = False,
     ) -> bool:
-
         xls_path = files_folder_path + ".xls"
         xlsx_path = xls_path + "x"
 

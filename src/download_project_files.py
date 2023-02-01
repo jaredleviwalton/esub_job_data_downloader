@@ -36,9 +36,7 @@ from urllib.parse import quote as url_quote
 from urllib.request import urlretrieve
 from uuid import uuid1, uuid4
 
-from selenium.webdriver import Chrome
-from selenium.webdriver import ChromeOptions
-from selenium.webdriver import Remote
+from selenium.webdriver import Chrome, ChromeOptions, Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -65,7 +63,6 @@ class eSUB:
         my_url_list=None,
         download_proj=True,
     ):
-
         # setup folder paths
         pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
         pathlib.Path(self.DOWNLOAD_BASE_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -337,7 +334,6 @@ class eSUB:
                 on_mouse_over_items = self.driver_session.find_elements(By.XPATH, '//*[@name="IconXLS1"]')
                 for item in on_mouse_over_items:
                     if "Excel" in item.text or len(on_mouse_over_items) == 1:
-
                         # Clean up any existing files first before downloading
                         files = list(pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).glob("**/*"))
                         for file in files:
@@ -387,7 +383,6 @@ class eSUB:
                 on_mouse_over_items = self.driver_session.find_elements(By.XPATH, '//*[@name="IconXLS1"]')
                 for item in on_mouse_over_items:
                     if "Excel" in item.text or len(on_mouse_over_items) == 1:
-
                         # Clean up any existing files first before downloading
                         files = list(pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).glob("**/*"))
                         for file in files:
@@ -439,7 +434,6 @@ class eSUB:
             seconds += 1
 
     def _save_email(self, tab_name, sub_job_cost_doc_item):
-
         # Setup project email download path
         download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
         pathlib.Path(download_path).mkdir(parents=True, exist_ok=True)
@@ -483,7 +477,6 @@ class eSUB:
                 By.CSS_SELECTOR, '[src="/TRACKpoint/images/icons/attachment.png"]'
             )
             for attachment_icon_element in attachment_icon_elements:
-
                 # get the parent and sibling element(s) for the attachment icon
                 # sibling at index 0 is the icon
                 # sibling at index 1 is the attachment name
@@ -524,7 +517,6 @@ class eSUB:
                 break  # probably don't need this but don't want to test it
 
     def _download_pdf_files(self, tab_name, sub_job_cost_doc_item):
-
         sleep(3)
 
         project_files_download_path = os.path.join(self.project_download_folder, tab_name, sub_job_cost_doc_item)
@@ -584,7 +576,6 @@ class eSUB:
             # Get all the buttons but only do stuff for ones that say "Download PDF File"
             for button in self.driver_session.find_elements(By.CSS_SELECTOR, ".ui-button-text"):
                 if button.text == "Download PDF File":
-
                     # Clean up any existing files first before downloading
                     files = list(pathlib.Path(self.CHROME_DOWNLOAD_FOLDER_PATH).glob("**/*"))
                     for file in files:
@@ -626,7 +617,6 @@ class eSUB:
                 break  # probably don't need this but don't want to test it
 
     def _download_project_files(self, menu_name, sub_job_cost_doc_item):
-
         sleep(10)
 
         # get all the download links
@@ -671,7 +661,6 @@ def download_files_single_thread():
 
 
 if __name__ == "__main__":
-
     # Setup main window and get list of projects.
     main_window = eSUB(None, download_proj=False)
     project_urls = main_window.get_project_urls()

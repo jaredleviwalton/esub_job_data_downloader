@@ -25,7 +25,6 @@ import os
 
 import _secrets
 
-
 BASE_FOLDER = None
 FULL_SCREEN_CHROME = False
 NUM_CONCURRENT_SESSIONS = None
